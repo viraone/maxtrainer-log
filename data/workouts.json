@@ -15,6 +15,22 @@
       "reps" : 6,
       "summary" : "Solid start with your barbell curls. Let's refine the form a bit for optimal results.",
       "timestamp" : "2026-08-29T00:20:15Z"
+    },
+    {
+      "cues" : [
+        "Brace your core.",
+        "Keep those elbows locked in place.",
+        "Extend fully at the bottom."
+      ],
+      "exercise" : "Barbell Curls — Biceps",
+      "improvements" : [
+        "Avoid swinging your body to lift the bar.",
+        "Ensure full extension of arms at the bottom.",
+        "Try to keep elbows close to your body."
+      ],
+      "reps" : 3,
+      "summary" : "Solid start with your barbell curls! Let's refine a few details to get even more out of this exercise.",
+      "timestamp" : "2026-08-29T00:34:20Z"
     }
   ]
 }
