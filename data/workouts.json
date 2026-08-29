@@ -1,1 +1,20 @@
-{"workouts":[]}
+{
+  "workouts" : [
+    {
+      "cues" : [
+        "Pin your elbows to your sides",
+        "Straighten your arms all the way down",
+        "Tighten your core and avoid swinging"
+      ],
+      "exercise" : "Barbell Curls — Biceps",
+      "improvements" : [
+        "Keep your elbows closer to your sides to minimize shoulder involvement",
+        "Ensure full range of motion by fully extending at the bottom",
+        "Avoid leaning back to maintain core stability"
+      ],
+      "reps" : 6,
+      "summary" : "Solid start with your barbell curls. Let's refine the form a bit for optimal results.",
+      "timestamp" : "2026-08-29T00:20:15Z"
+    }
+  ]
+}
