@@ -12,7 +12,7 @@ A voice-run personal trainer for iPhone, focused on abs and a six-pack, plus the
 | --- | --- |
 | "Start the ab workout" (or "abs", "six-pack") | Runs the six-pack circuit: planks, crunches, leg raises, bicycle crunches, Russian twists, mountain climbers, three sets each. Max moves to the next exercise by himself. |
 | "Next" / "skip" | Jumps to the next move of the circuit. |
-| "How do I do bicycle crunches?" | Opens the move's guide (set-up, steps, cues, mistakes, a demo link) and Max talks you through it. Tapping any move on the home screen opens the same guide. |
+| "How do I do bicycle crunches?" | Opens the move's guide (set-up, steps, cues, mistakes, an in-app demo video) and Max talks you through it. Tapping any move on the home screen opens the same guide. |
 | "Planks, thirty seconds" | Sets up a timed set. |
 | "Three sets of ten push-ups" | Sets up rep-based sets. |
 | "Let's go" | Counts down three, two, one and starts the set. |

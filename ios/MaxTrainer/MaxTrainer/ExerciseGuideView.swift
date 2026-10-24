@@ -5,6 +5,7 @@ struct ExerciseGuideView: View {
     let guide: ExerciseGuide
     @EnvironmentObject var engine: TrainerEngine
     @Environment(\.dismiss) private var dismiss
+    @State private var showDemo = false
 
     var body: some View {
         NavigationStack {
@@ -81,13 +82,13 @@ struct ExerciseGuideView: View {
                             }
                             .buttonStyle(.bordered)
 
-                            Link(destination: guide.demoURL) {
+                            Button { showDemo = true } label: {
                                 Label("Watch a demo", systemImage: "play.rectangle.fill")
                                     .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
                             }
                             .buttonStyle(.bordered)
                         }
-                        Text("The demo opens YouTube with a search for this move.")
+                        Text("Demo videos open right here, inside the app.")
                             .font(.caption2).foregroundStyle(.tertiary)
                     }
                     .padding(.top, 6)
@@ -100,6 +101,9 @@ struct ExerciseGuideView: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+        .sheet(isPresented: $showDemo) {
+            SafariView(url: guide.demoURL).ignoresSafeArea()
+        }
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {

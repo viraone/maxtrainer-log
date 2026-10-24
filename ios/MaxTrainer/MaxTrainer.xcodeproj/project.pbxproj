@@ -23,6 +23,7 @@
 		B696DE4F8199F29AE05EAB89 /* TrainerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65276C4347A17327023364B /* TrainerEngine.swift */; };
 		CF5036C41869BCA04B0E8C18 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5403EF6DB163F035346FE0F7 /* SettingsView.swift */; };
 		D4875441AB97CD61C2FB4D76 /* SpeechListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC404E46A09B219AA6C927A1 /* SpeechListener.swift */; };
+		E417CEDEBEF36B558E16A42E /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42E55E4CFC83A6AF2C5DB0F /* SafariView.swift */; };
 		E4A62C175C336B3A742EAF39 /* MaxTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3CD8B18DF4347D5E21531C1 /* MaxTrainerApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		9DCF5AD1B84CAF7622F203C9 /* MaxTrainer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MaxTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD7875333D262F52DEFEE00E /* Voice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Voice.swift; sourceTree = "<group>"; };
 		C3CD8B18DF4347D5E21531C1 /* MaxTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxTrainerApp.swift; sourceTree = "<group>"; };
+		C42E55E4CFC83A6AF2C5DB0F /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		C65276C4347A17327023364B /* TrainerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerEngine.swift; sourceTree = "<group>"; };
 		EC404E46A09B219AA6C927A1 /* SpeechListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechListener.swift; sourceTree = "<group>"; };
 		ED4DA480E5C82330FE7A2DC5 /* ExerciseGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseGuideView.swift; sourceTree = "<group>"; };
@@ -71,6 +73,7 @@
 				65614AC1DB3049E30231029E /* LogView.swift */,
 				C3CD8B18DF4347D5E21531C1 /* MaxTrainerApp.swift */,
 				70E5825DCF7BCD61E4C0B607 /* Models.swift */,
+				C42E55E4CFC83A6AF2C5DB0F /* SafariView.swift */,
 				F3F51ABB3E533ABD0A5340D6 /* Settings.swift */,
 				5403EF6DB163F035346FE0F7 /* SettingsView.swift */,
 				EC404E46A09B219AA6C927A1 /* SpeechListener.swift */,
@@ -170,6 +173,7 @@
 				709C2DC94D9EC0B83433F10B /* LogView.swift in Sources */,
 				E4A62C175C336B3A742EAF39 /* MaxTrainerApp.swift in Sources */,
 				55CD489708752FAA76DFC664 /* Models.swift in Sources */,
+				E417CEDEBEF36B558E16A42E /* SafariView.swift in Sources */,
 				4FB33347730B871BFDAF5C1D /* Settings.swift in Sources */,
 				CF5036C41869BCA04B0E8C18 /* SettingsView.swift in Sources */,
 				D4875441AB97CD61C2FB4D76 /* SpeechListener.swift in Sources */,
