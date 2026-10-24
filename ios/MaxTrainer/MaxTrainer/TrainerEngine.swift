@@ -41,6 +41,18 @@ final class TrainerEngine: ObservableObject {
     private var midSetFrame: Data?
     private var cancellables = Set<AnyCancellable>()
 
+    /// A line Max has spoken recently, used to reject his own voice coming back through the mic.
+    private struct SpokenLine {
+        let id: UUID
+        let normalized: String
+        let words: Set<String>
+        let started: Date
+        var ended: Date?
+    }
+    private var spokenLines: [SpokenLine] = []
+    /// A phrase heard this soon after Max stops could still be his own words.
+    private let echoWindow: TimeInterval = 4.0
+
     init() {
         // Re-publish child changes so views refresh.
         for child in [listener.objectWillChange.eraseToAnyPublisher(), voice.objectWillChange.eraseToAnyPublisher(),
@@ -57,16 +69,22 @@ final class TrainerEngine: ObservableObject {
         UIApplication.shared.isIdleTimerDisabled = true
 
         listener.fastPath = { [weak self] text in self?.consumeFastPath(text) ?? false }
-        listener.onUtterance = { [weak self] text in Task { await self?.handle(text) } }
+        listener.onUtterance = { [weak self] text in Task { await self?.handle(text, fromMic: true) } }
         voice.willSpeak = { [weak self] in self?.listener.suppress(true) }
         voice.didFinish = { [weak self] in self?.listener.suppress(false) }
 
         await camera.start(front: settings.useFrontCamera)
         let ok = await listener.requestPermissions()
-        if ok { listener.start() }
+        if ok {
+            // Hold the microphone through the greeting so nothing heard before Max
+            // finishes can become a command.
+            listener.suppress(true)
+            listener.start()
+        }
         voice.warmUp()
 
-        await say("Hey, I'm Max. Tell me what we're doing. For example: let's do planks.")
+        await say("Hey, I'm Max. What are we training today? Say it, or tap a move on the screen.")
+        if ok { listener.suppress(false) }   // also covers voice being turned off
         Task { await store.sync() }
     }
 
@@ -106,6 +124,7 @@ final class TrainerEngine: ObservableObject {
 
     /// Instant commands caught on the partial transcript.
     private func consumeFastPath(_ text: String) -> Bool {
+        guard !isEcho(text) else { return false }
         guard let intent = IntentParser.fastPath(text) else { return false }
         switch intent {
         case .go:
@@ -123,11 +142,12 @@ final class TrainerEngine: ObservableObject {
     }
 
     /// A complete utterance (from the mic or typed).
-    func handle(_ text: String) async {
+    func handle(_ text: String, fromMic: Bool = false) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        if fromMic, isEcho(trimmed) { return }
         heard = trimmed
-        var intent = IntentParser.parse(trimmed)
+        var intent = IntentParser.parse(trimmed, strictIdle: fromMic && plan == nil)
 
         let askClaude: Bool
         switch intent {
@@ -153,14 +173,14 @@ final class TrainerEngine: ObservableObject {
         switch intent {
         case .plan(let exercise, let reps, let seconds, let sets):
             guard phase != .active, phase != .countdown else {
-                await say("Finish this set first, or say stop.")
+                await say("Finish this set first. Tell me if you want to bail.")
                 return
             }
             timerTask?.cancel()
             awaitingRepCount = false
             let name = exercise.map(IntentParser.titleCase) ?? plan?.name
             guard let name else {
-                await say("Which exercise? For example: planks, thirty seconds.")
+                await say("Tap a move, or tell me its name and the amount.")
                 return
             }
             let sameExercise = plan?.name.lowercased() == name.lowercased()
@@ -181,11 +201,11 @@ final class TrainerEngine: ObservableObject {
 
         case .go:
             guard let plan else {
-                await say("Tell me the exercise first. For example: planks, thirty seconds.")
+                await say("Tell me the move first. Tap a move, or name it with an amount.")
                 return
             }
             guard plan.setsRemaining > 0 else {
-                await say("That one's done. Say more sets, or give me the next exercise.")
+                await say("That one's done. Tell me to add sets, or ask for the move after this.")
                 return
             }
             guard phase == .ready || phase == .idle || phase == .resting else { return }
@@ -216,16 +236,16 @@ final class TrainerEngine: ObservableObject {
                 await finishRepSet(reps: n)
             } else if phase == .ready, var p = plan {
                 switch p.mode {
-                case .timed: p.mode = .timed(seconds: n); plan = p; await say("\(WorkoutSet.spokenDuration(n)). Say let's go.")
-                case .reps: p.mode = .reps(target: n); plan = p; await say("\(n) reps. Say let's go.")
+                case .timed: p.mode = .timed(seconds: n); plan = p; await say("Okay. Tell me when you're set.")
+                case .reps: p.mode = .reps(target: n); plan = p; await say("Okay. Tell me when you're set.")
                 }
             } else {
-                await say("\(n) what? Give me the exercise.")
+                await say("Tell me the move for that number.")
             }
 
         case .moreSets(let n):
             guard var p = plan else {
-                await say("More sets of what? Tell me the exercise.")
+                await say("More of what move? Tap it or name it.")
                 return
             }
             guard phase != .active, phase != .countdown else { return }
@@ -233,7 +253,7 @@ final class TrainerEngine: ObservableObject {
             p.setsRemaining += n
             plan = p
             phase = .ready
-            await say("\(n) more \(n == 1 ? "set" : "sets") of \(p.spoken). Tell me when to start recording you.")
+            await say("Okay, added to the plan. Tell me when to start recording you.")
 
         case .stop:
             switch phase {
@@ -241,11 +261,11 @@ final class TrainerEngine: ObservableObject {
                 timerTask?.cancel()
                 camera.stopRecording(save: false, label: plan?.name ?? "")
                 phase = .ready
-                await say("Stopped. Say let's go baby to run it again, or tell me what's next.")
+                await say("Stopped. Tell me when to start recording you again, or what you want to do.")
             case .resting:
                 timerTask?.cancel()
                 phase = .ready
-                await say("Okay. Say let's go when you're ready.")
+                await say("Okay. Tell me when you're set.")
             default:
                 break
             }
@@ -262,17 +282,17 @@ final class TrainerEngine: ObservableObject {
             p.mode = .timed(seconds: s)
             plan = p
             phase = .ready
-            await say("\(WorkoutSet.spokenDuration(s)) of \(p.name). Say let's go.")
+            await say("\(WorkoutSet.spokenDuration(s)) of \(p.name). Tell me when you're set.")
 
         case .question:
-            await say("I can't answer that without my Claude key. Tell me an exercise and how long, or say let's go.")
+            await say("I can't answer that without my Claude key. Tell me a move and how long.")
 
         case .reply(let text):
-            await say(text.isEmpty ? "Say that again?" : text)
+            await say(text.isEmpty ? "I didn't catch that." : text)
 
         case .startRoutine:
             guard phase != .active, phase != .countdown else {
-                await say("Finish this set first, or say stop.")
+                await say("Finish this set first. Tell me if you want to bail.")
                 return
             }
             timerTask?.cancel()
@@ -281,11 +301,11 @@ final class TrainerEngine: ObservableObject {
             let first = AbsProgram.steps[0]
             plan = first
             phase = .ready
-            await say("Got it. Six-pack circuit, \(AbsProgram.steps.count) moves, three sets each. First up: \(first.spoken). Tell me when to start recording you.")
+            await say("Got it. Full circuit, \(AbsProgram.steps.count) moves, three sets each. First up: \(first.spoken). Tell me when to start recording you.")
 
         case .next:
             guard phase != .active, phase != .countdown else {
-                await say("Finish this set first, or say stop.")
+                await say("Finish this set first. Tell me if you want to bail.")
                 return
             }
             await advanceRoutine(skipped: true)
@@ -311,7 +331,7 @@ final class TrainerEngine: ObservableObject {
             await say(guide.spoken)
 
         case .unknown:
-            if raw.split(separator: " ").count >= 3 { await say("Say that again?") }
+            if raw.split(separator: " ").count >= 3 { await say("I didn't catch that.") }
         }
     }
 
@@ -350,7 +370,7 @@ final class TrainerEngine: ObservableObject {
             if !halfwaySaid, e >= total / 2 {
                 halfwaySaid = true
                 if midSetFrame == nil { midSetFrame = camera.snapshotJPEG() }
-                await say("Halfway.")
+                await say("You're at the halfway point.")
             } else if total > 15, remaining == 10, !spoken.contains(10) {
                 spoken.insert(10)
                 await say("Ten seconds.")
@@ -422,12 +442,12 @@ final class TrainerEngine: ObservableObject {
         sessionSets.append(set)
         phase = .ready
         if p.setsRemaining > 0 {
-            await say("Logged. \(p.setsRemaining) to go. Tell me when to start recording you.")
+            await say("Logged. Tell me when to start recording you.")
         } else if routineIndex != nil {
-            await say("Logged.")
+            await say("Okay, that's logged and saved.")
             await advanceRoutine(skipped: false)
         } else {
-            await say("Logged. That's \(p.setsDone) \(p.setsDone == 1 ? "set" : "sets") of \(p.name). Say more sets, or give me the next exercise.")
+            await say("Logged. Nice work on \(p.name). Tell me to add sets, or ask for the move after this.")
         }
         let frame = midSetFrame
         midSetFrame = nil
@@ -464,7 +484,7 @@ final class TrainerEngine: ObservableObject {
         timerTask?.cancel()
         phase = .resting
         remaining = seconds
-        await say("Rest \(WorkoutSet.spokenDuration(seconds)).")
+        await say("Recovery time. Just breathe.")
         timerTask = Task { [weak self] in
             let start = Date()
             while !Task.isCancelled {
@@ -475,7 +495,7 @@ final class TrainerEngine: ObservableObject {
             }
             guard !Task.isCancelled, let self else { return }
             self.phase = .ready
-            await self.say("Rest's over. Say let's go when you're ready.")
+            await self.say("Break's over. Tell me when you're set.")
         }
     }
 
@@ -487,7 +507,7 @@ final class TrainerEngine: ObservableObject {
         awaitingRepCount = false
         let sets = sessionSets
         guard !sets.isEmpty else {
-            await say("Nothing logged yet. Tell me an exercise whenever you're ready.")
+            await say("Nothing logged yet. Tell me the move whenever you want.")
             plan = nil
             return
         }
@@ -502,7 +522,7 @@ final class TrainerEngine: ObservableObject {
         plan = nil
         let synced = await store.sync()
         if settings.hasGitHub {
-            await say(synced ? "It's all on your dashboard. Say an exercise whenever you want to go again." : "Saved on the phone. I'll push it to the dashboard when I can.")
+            await say(synced ? "It's all on your dashboard. Tell me when you want to train again." : "Saved on the phone. I'll push it to the dashboard when I can.")
         } else {
             await say("Saved on the phone. Add a GitHub token in settings and I'll push it to your dashboard.")
         }
@@ -532,7 +552,7 @@ final class TrainerEngine: ObservableObject {
     /// Move on to the next exercise of the guided circuit (after finishing one, or when the user skips).
     private func advanceRoutine(skipped: Bool) async {
         guard let i = routineIndex else {
-            await say("Say start the ab workout and I'll run the circuit.")
+            await say("Ask me for the guided workout and I'll run it.")
             return
         }
         let finished = plan?.name ?? "that one"
@@ -543,12 +563,12 @@ final class TrainerEngine: ObservableObject {
             plan = step
             phase = .ready
             let lead = skipped ? "Skipping \(finished)." : "\(finished) done."
-            await say("\(lead) Next up: \(step.spoken), \(step.setsRemaining) sets. Tell me when to start recording you.")
+            await say("\(lead) \(step.name) is coming up. Tell me when to start recording you.")
         } else {
             routineIndex = nil
             phase = .ready
-            await say(skipped ? "That was the last move." : "That's the whole circuit. Your abs are done for today.")
-            await say("Say that's it for today to wrap up, or say more sets.")
+            await say(skipped ? "That was the last move." : "That's the whole workout. Nice work.")
+            await say("Tell me when you're done training, or ask for extra sets.")
         }
     }
 
@@ -565,8 +585,44 @@ final class TrainerEngine: ObservableObject {
     func say(_ text: String) async {
         maxLine = text
         guard settings.voiceEnabled else { return }
+        let spokenID = noteSpoken(text)
         await voice.say(text)
+        if let spokenID { finishSpoken(spokenID) }
     }
 
     func stopTalking() { voice.stop() }
+
+    /// Remember a line as Max starts speaking it.
+    private func noteSpoken(_ text: String) -> UUID? {
+        let normalized = IntentParser.normalize(text)
+        guard !normalized.isEmpty else { return nil }
+        let line = SpokenLine(id: UUID(), normalized: normalized,
+                              words: Set(normalized.split(separator: " ").map(String.init)),
+                              started: Date())
+        spokenLines.append(line)
+        spokenLines.removeAll { ($0.ended ?? $0.started) < Date().addingTimeInterval(-10) }
+        return line.id
+    }
+
+    private func finishSpoken(_ id: UUID) {
+        guard let i = spokenLines.firstIndex(where: { $0.id == id }) else { return }
+        spokenLines[i].ended = Date()
+    }
+
+    /// True when `text` is probably Max's own voice coming back through the mic: he is
+    /// talking right now, or every word of it is in something he said in the last few seconds.
+    private func isEcho(_ text: String) -> Bool {
+        if voice.isSpeaking { return true }
+        let normalized = IntentParser.normalize(text)
+        guard !normalized.isEmpty else { return true }
+        let words = Set(normalized.split(separator: " ").map(String.init))
+        let now = Date()
+        for line in spokenLines.reversed() {
+            // Lines still playing are covered by isSpeaking above.
+            guard let ended = line.ended, now.timeIntervalSince(ended) <= echoWindow else { continue }
+            if line.normalized.contains(normalized) { return true }
+            if !words.isEmpty, words.isSubset(of: line.words) { return true }
+        }
+        return false
+    }
 }

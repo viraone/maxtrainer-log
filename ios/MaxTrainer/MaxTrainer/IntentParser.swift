@@ -77,7 +77,10 @@ enum IntentParser {
 
     // MARK: - Full parse
 
-    static func parse(_ raw: String) -> Intent {
+    /// `strictIdle` is used for microphone input while no exercise is chosen: the loose
+    /// "plain words are an exercise" fallback then needs an exact move name, and a plan
+    /// with no amount needs an explicit lead-in or an exact move name.
+    static func parse(_ raw: String, strictIdle: Bool = false) -> Intent {
         let t = normalize(raw)
         guard !t.isEmpty else { return .unknown }
         let words = t.split(separator: " ").map(String.init)
@@ -160,10 +163,18 @@ enum IntentParser {
         let planVerbs = ["lets do", "lets start", "lets go with", "do some", "start with", "switch to", "move to",
                          "next is", "next up", "time for", "give me", "now do", "lets try", "ready for", "set up", "set a timer"]
         let looksLikePlan = secs != nil || repCount != nil || setCount != nil || planVerbs.contains { t.contains($0) }
+        let hasAmount = secs != nil || repCount != nil || setCount != nil
 
         if looksLikePlan {
             if exercise == nil && secs == nil && repCount == nil, let setCount {
                 return .moreSets(setCount)
+            }
+            if !hasAmount, let exercise {
+                let known = ExerciseGuides.exactMatch(exercise) != nil
+                // A whole sentence's leftovers ("Im Tell What Were Example Planks") are not a move name.
+                if exercise.split(separator: " ").count > 3, !known { return .unknown }
+                // Mic only, idle screen: no amount means it needs a real move name or a lead-in.
+                if strictIdle, !known, !startsWithLeadIn(t) { return .unknown }
             }
             return .plan(exercise: exercise, reps: repCount, seconds: secs, sets: setCount)
         }
@@ -172,9 +183,19 @@ enum IntentParser {
         if words.count <= 2, let (n, used) = numberAt(words, 0), used == words.count { return .number(n) }
 
         // Two or three plain words with nothing else: probably an exercise name.
-        if let exercise, words.count <= 3 { return .plan(exercise: exercise, reps: nil, seconds: nil, sets: nil) }
+        if let exercise, words.count <= 3 {
+            if strictIdle, ExerciseGuides.exactMatch(exercise) == nil { return .unknown }
+            return .plan(exercise: exercise, reps: nil, seconds: nil, sets: nil)
+        }
 
         return .unknown
+    }
+
+    /// Lead-ins that may introduce a move ("let's do planks", "start crunches").
+    static let planLeadIns = ["lets do", "lets start", "start", "do some", "start with", "give me", "time for",
+                              "lets try", "ready for", "switch to", "move to", "now do"]
+    static func startsWithLeadIn(_ t: String) -> Bool {
+        planLeadIns.contains { t.hasPrefix($0 + " ") }
     }
 
     // MARK: - Pieces

@@ -157,21 +157,28 @@ enum ExerciseGuides {
 
     /// Find a guide by name, forgiving plurals, case and extra words ("bicycle crunch", "a side plank").
     static func find(_ text: String) -> ExerciseGuide? {
-        let t = IntentParser.normalize(text)
-        guard !t.isEmpty else { return nil }
-        func key(_ s: String) -> String {
-            IntentParser.normalize(s).split(separator: " ").map { w -> String in
-                var w = String(w)
-                if w.hasSuffix("es"), w.count > 4 { w.removeLast(2) } else if w.hasSuffix("s"), w.count > 3 { w.removeLast() }
-                return w
-            }.joined(separator: " ")
-        }
-        let wanted = key(t)
-        if let exact = all.first(where: { key($0.name) == wanted }) { return exact }
+        let wanted = key(IntentParser.normalize(text))
+        guard !wanted.isEmpty else { return nil }
+        if let exact = exactMatch(text) { return exact }
         // Every word of the guide's name appears in what was said
         return all.first { g in
             let words = key(g.name).split(separator: " ").map(String.init)
             return words.allSatisfy { wanted.contains($0) }
         }
+    }
+
+    /// The guide whose name is exactly this text ("planks", "leg raise"), ignoring plurals and case.
+    static func exactMatch(_ text: String) -> ExerciseGuide? {
+        let wanted = key(IntentParser.normalize(text))
+        guard !wanted.isEmpty else { return nil }
+        return all.first { key(IntentParser.normalize($0.name)) == wanted }
+    }
+
+    private static func key(_ s: String) -> String {
+        IntentParser.normalize(s).split(separator: " ").map { w -> String in
+            var w = String(w)
+            if w.hasSuffix("es"), w.count > 4 { w.removeLast(2) } else if w.hasSuffix("s"), w.count > 3 { w.removeLast() }
+            return w
+        }.joined(separator: " ")
     }
 }

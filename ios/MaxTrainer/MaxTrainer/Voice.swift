@@ -46,7 +46,17 @@ final class Voice: NSObject, ObservableObject {
     }
 
     func stop() {
+        // Forget everything that was queued: the delegate callbacks for these
+        // utterances must not move the counter or fire didFinish again.
+        let pending = continuations
+        continuations.removeAll()
+        active = 0
         synth.stopSpeaking(at: .immediate)
+        for (_, c) in pending { c.resume() }
+        if !pending.isEmpty {
+            isSpeaking = false
+            didFinish?()
+        }
     }
 
     /// Speak a silent, near-instant utterance so the engine is loaded before the first real line.
@@ -59,7 +69,12 @@ final class Voice: NSObject, ObservableObject {
     }
 
     private func finished(_ u: AVSpeechUtterance) {
-        if let c = continuations.removeValue(forKey: u) { c.resume() }
+        guard let c = continuations.removeValue(forKey: u) else {
+            // Not a line say() queued — the silent warm-up, or a callback after stop().
+            // It must not touch the counter or tell the listener Max stopped talking.
+            return
+        }
+        c.resume()
         active = max(0, active - 1)
         if active == 0 {
             isSpeaking = false
