@@ -44,6 +44,19 @@
       "set_number" : 1,
       "summary" : "Planks: 30 seconds.",
       "timestamp" : "2026-10-24T18:57:05Z"
+    },
+    {
+      "cues" : [
+
+      ],
+      "duration_seconds" : 30,
+      "exercise" : "Planks",
+      "improvements" : [
+
+      ],
+      "set_number" : 2,
+      "summary" : "Planks: 30 seconds.",
+      "timestamp" : "2026-10-24T18:58:21Z"
     }
   ]
 }
