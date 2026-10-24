@@ -22,7 +22,7 @@ struct VoicePickerView: View {
                             .font(.footnote)
                         VStack(alignment: .leading, spacing: 4) {
                             step(1, "Open the iPhone **Settings** app")
-                            step(2, "**Accessibility** → **Spoken Content** → **Voices**")
+                            step(2, "**Accessibility** → **Read & Speak** (called **Spoken Content** on older iOS) → **Voices**")
                             step(3, "**English** → pick a voice → tap the download icon")
                             step(4, "Good picks: **Evan**, **Nathan**, **Tom** (Enhanced) or **Ava**, **Zoe** (Premium)")
                             step(5, "Come back here and choose it")
