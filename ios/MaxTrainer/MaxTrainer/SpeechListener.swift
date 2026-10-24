@@ -91,7 +91,7 @@ final class SpeechListener: ObservableObject {
             cancelRecognition()
         } else {
             suppressed = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
                 guard let self, !self.suppressed, self.running, self.task == nil else { return }
                 self.beginRecognition()
             }

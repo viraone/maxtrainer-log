@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import AudioToolbox
 
 /// The brain: listens, decides, talks, times sets, logs them.
 @MainActor
@@ -63,6 +64,7 @@ final class TrainerEngine: ObservableObject {
         await camera.start(front: settings.useFrontCamera)
         let ok = await listener.requestPermissions()
         if ok { listener.start() }
+        voice.warmUp()
 
         await say("Hey, I'm Max. Tell me what we're doing. For example: let's do planks.")
         Task { await store.sync() }
@@ -323,6 +325,7 @@ final class TrainerEngine: ObservableObject {
         elapsed = 0
         if case .timed(let s) = p.mode { remaining = s }
         if settings.recordSets, camera.isRunning, !camera.unavailable { camera.startRecording() }
+        AudioServicesPlaySystemSound(1117)   // the "begin recording" tick: instant feedback before Max speaks
         await say("Recording. Set \(setNumber). Three, two, one, go!")
         guard phase == .countdown else { camera.stopRecording(save: false, label: p.name); return }
         phase = .active

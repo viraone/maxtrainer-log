@@ -43,6 +43,15 @@ final class Voice: NSObject, ObservableObject {
         synth.stopSpeaking(at: .immediate)
     }
 
+    /// Speak a silent, near-instant utterance so the engine is loaded before the first real line.
+    func warmUp() {
+        let u = AVSpeechUtterance(string: " ")
+        u.voice = chosenVoice
+        u.volume = 0
+        u.rate = AVSpeechUtteranceMaximumSpeechRate
+        synth.speak(u)
+    }
+
     private func finished(_ u: AVSpeechUtterance) {
         if let c = continuations.removeValue(forKey: u) { c.resume() }
         active = max(0, active - 1)
@@ -55,10 +64,11 @@ final class Voice: NSObject, ObservableObject {
     static func pickVoice() -> AVSpeechSynthesisVoice? {
         let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "en-US" }
         let ranked = voices.sorted { a, b in
+            // Enhanced voices start speaking faster than premium ones, and sound nearly as good.
             func score(_ v: AVSpeechSynthesisVoice) -> Int {
                 switch v.quality {
-                case .premium: return 3
-                case .enhanced: return 2
+                case .enhanced: return 3
+                case .premium: return 2
                 default: return 1
                 }
             }
