@@ -31,6 +31,19 @@
       "reps" : 3,
       "summary" : "Solid start with your barbell curls! Let's refine a few details to get even more out of this exercise.",
       "timestamp" : "2026-08-29T00:34:20Z"
+    },
+    {
+      "cues" : [
+
+      ],
+      "duration_seconds" : 30,
+      "exercise" : "Planks",
+      "improvements" : [
+
+      ],
+      "set_number" : 1,
+      "summary" : "Planks: 30 seconds.",
+      "timestamp" : "2026-10-24T18:57:05Z"
     }
   ]
 }
