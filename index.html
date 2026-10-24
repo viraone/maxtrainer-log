@@ -239,7 +239,7 @@
 
   <div id="editbanner">
     <div class="big"><span>Editing.</span> Click any set to change it, or add one.</div>
-    <div style="display:flex; gap:8px"><button class="btn sm primary" id="addSetBtn">+ Add set</button><button class="btn sm" id="doneBtn">Done</button></div>
+    <div style="display:flex; gap:8px; align-items:center"><button class="btn sm" id="tokenBtn" title="Replace the saved GitHub token">GitHub token</button><button class="btn sm primary" id="addSetBtn">+ Add set</button><button class="btn sm" id="doneBtn">Done</button></div>
   </div>
 
   <section class="page on" id="page-log">
@@ -678,6 +678,7 @@ $("#adminBtn").onclick = () => {
   $("#tokenInput").value = ""; $("#tokenModal").classList.add("show"); setTimeout(() => $("#tokenInput").focus(), 50);
 };
 $("#tokenCancel").onclick = () => $("#tokenModal").classList.remove("show");
+$("#tokenBtn").onclick = () => { $("#tokenInput").value = ""; $("#tokenModal").classList.add("show"); setTimeout(() => $("#tokenInput").focus(), 50); };
 $("#tokenSave").onclick = () => {
   const t = $("#tokenInput").value.trim();
   if (!t) return;
@@ -801,7 +802,7 @@ $("#saveBtn").onclick = async () => {
     const url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${REPO.path}`;
     const headers = { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
     const cur = await fetch(`${url}?ref=${REPO.branch}&t=${Date.now()}`, { headers });
-    if (cur.status === 401 || cur.status === 403) throw new Error("GitHub rejected the token. Click Admin again after clearing it (Discard → Admin) or create a new token.");
+    if (cur.status === 401 || cur.status === 403) throw new Error("GitHub rejected the saved token. Click “GitHub token” in the editing bar and paste a current one.");
     const sha = cur.ok ? (await cur.json()).sha : undefined;
     const clean = all.map((w) => { const { raw, date, ...rest } = w; return rest; })
       .sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
