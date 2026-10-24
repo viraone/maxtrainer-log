@@ -3,6 +3,8 @@ import AVFoundation
 
 struct TrainerView: View {
     @EnvironmentObject var engine: TrainerEngine
+    @ObservedObject private var settings = AppSettings.shared
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showSettings = false
     @State private var showLog = false
     @State private var showTyping = false
@@ -40,6 +42,9 @@ struct TrainerView: View {
         .sheet(item: $guide) { g in ExerciseGuideView(guide: g).environmentObject(engine) }
         .onChange(of: engine.showGuide) { _, g in
             if let g { guide = g; engine.showGuide = nil }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await engine.store.sync() } }
         }
     }
 
@@ -192,6 +197,26 @@ struct TrainerView: View {
                 }
             }
 
+            if !settings.hasGitHub {
+                Button { showSettings = true } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "icloud.slash").font(.title3)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Sets stay on this phone").font(.subheadline.weight(.bold))
+                            Text("Add your GitHub token and every set lands on your dashboard the moment it ends.").font(.caption)
+                        }
+                        Spacer()
+                        Text("Add").font(.subheadline.weight(.bold))
+                    }
+                    .padding(12)
+                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.accent.opacity(0.18)))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.accent.opacity(0.5)))
+                }
+                .buttonStyle(.plain)
+            } else {
+                syncStatus
+            }
+
             HStack(spacing: 10) {
                 primaryButton
                 Button { engine.camera.flip() } label: { Image(systemName: "arrow.triangle.2.circlepath.camera") }
@@ -210,6 +235,27 @@ struct TrainerView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 12)
         .padding(.bottom, 10)
+    }
+
+    /// One line under the card: where your sets are right now.
+    @ViewBuilder
+    private var syncStatus: some View {
+        let store = engine.store
+        let pending = store.pending.count
+        if store.isSyncing {
+            Label("Logging to your dashboard…", systemImage: "arrow.triangle.2.circlepath").font(.caption).foregroundStyle(.secondary)
+        } else if pending > 0 {
+            Button { Task { await store.sync() } } label: {
+                Label("\(pending) \(pending == 1 ? "set" : "sets") waiting to sync · tap to retry", systemImage: "icloud.slash")
+                    .font(.caption).foregroundStyle(Color.accent)
+            }
+            .buttonStyle(.plain)
+        } else if let d = store.lastSyncDate {
+            Label("On your dashboard · \(d.formatted(date: .omitted, time: .shortened))", systemImage: "checkmark.icloud.fill")
+                .font(.caption).foregroundStyle(.green)
+        } else if !engine.sessionSets.isEmpty {
+            Label("On your dashboard", systemImage: "checkmark.icloud.fill").font(.caption).foregroundStyle(.green)
+        }
     }
 
     @ViewBuilder

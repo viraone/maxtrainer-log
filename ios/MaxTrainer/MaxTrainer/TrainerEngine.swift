@@ -446,7 +446,10 @@ final class TrainerEngine: ObservableObject {
             }
             isThinking = false
         }
-        await store.sync()
+        if await store.sync() == false, settings.hasGitHub {
+            try? await Task.sleep(for: .seconds(15))
+            await store.sync()
+        }
     }
 
     private func startRest(seconds: Int) async {
