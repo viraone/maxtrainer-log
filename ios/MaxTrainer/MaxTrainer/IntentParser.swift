@@ -82,6 +82,20 @@ enum IntentParser {
 
         if let fp = fastPath(t) { return fp }
 
+        // Skip to the next move of the circuit
+        let nextPhrases = ["next", "skip", "next exercise", "next one", "next move", "skip it", "skip this", "skip this one", "move on", "next please"]
+        if nextPhrases.contains(t) || t.hasPrefix("skip ") { return .next }
+
+        // The default focus: abs. "abs", "six pack", "start the workout" run the guided circuit.
+        let asking = ["how", "what", "why", "should", "can", "could", "is", "are", "does", "which", "when", "whats", "tell"].contains(words.first ?? "")
+        let wantsCircuit = words.contains("abs")
+            || (words.contains("core") && (t.contains("workout") || t.contains("circuit")))
+            || t.contains("six pack") || t.contains("sixpack") || t.contains("6 pack")
+            || t.contains("ab workout") || t.contains("ab circuit")
+            || t.contains("start the workout") || t.contains("start workout")
+            || t.contains("the circuit") || t.contains("the routine")
+        if !asking && wantsCircuit { return .startRoutine }
+
         // End of the session
         let endPhrases = ["for today", "for the day", "end workout", "end the workout", "end session",
                           "finish workout", "wrap it up", "wrap up", "call it", "im done for", "thats it for",

@@ -130,9 +130,23 @@ struct TrainerView: View {
                     Text(setsLabel(plan)).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
                 }
             } else {
-                Text("Tell Max an exercise").font(.title3.weight(.bold))
-                Text("“Planks, thirty seconds” · “Three sets of ten push-ups” · “Let's go”")
+                Text("SIX-PACK FOCUS").font(.caption.weight(.black)).tracking(1.6).foregroundStyle(Color.accent)
+                Text("Build your abs").font(.title2.weight(.heavy))
+                Text("\(AbsProgram.steps.count) moves · 3 sets each · about 25 minutes. Say “start the ab workout”, or pick a move.")
                     .font(.footnote).foregroundStyle(.secondary)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(AbsProgram.quickPicks, id: \.name) { pick in
+                            Button { Task { await engine.choose(pick.name, mode: pick.mode) } } label: {
+                                Text(pick.label)
+                                    .font(.footnote.weight(.semibold))
+                                    .padding(.horizontal, 12).padding(.vertical, 8)
+                                    .background(Capsule().fill(Color.white.opacity(0.12)))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
             }
 
             if !engine.maxLine.isEmpty {
@@ -198,7 +212,7 @@ struct TrainerView: View {
             if engine.plan != nil {
                 bigButton("LET'S GO", color: Color.accent) { Task { await engine.handle("let's go") } }
             } else {
-                bigButton("PLANKS · 30s", color: Color.accent) { Task { await engine.handle("planks 30 seconds") } }
+                bigButton("START AB WORKOUT", color: Color.accent) { Task { await engine.handle("start the ab workout") } }
             }
         }
     }
@@ -213,8 +227,9 @@ struct TrainerView: View {
 
     private func setsLabel(_ plan: ExercisePlan) -> String {
         let total = plan.setsDone + plan.setsRemaining
-        if total <= 1 && plan.setsDone == 0 { return "Set 1" }
-        return "Set \(min(plan.setsDone + 1, max(total, 1))) of \(max(total, 1))"
+        let base = (total <= 1 && plan.setsDone == 0) ? "Set 1" : "Set \(min(plan.setsDone + 1, max(total, 1))) of \(max(total, 1))"
+        if let i = engine.routineIndex { return "Move \(i + 1)/\(AbsProgram.steps.count) · " + base }
+        return base
     }
 
     private func sendTyped() {

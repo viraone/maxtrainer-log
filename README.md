@@ -1,6 +1,6 @@
 # MaxTrainer
 
-A voice-run personal trainer for iPhone, plus the workout dashboard it logs to.
+A voice-run personal trainer for iPhone, focused on abs and a six-pack, plus the workout dashboard it logs to.
 
 - **`ios/MaxTrainer`** — the iOS app. Put the phone on a tripod, talk to Max.
 - **`index.html` + `data/workouts.json`** — the dashboard, served by GitHub Pages at
@@ -10,6 +10,8 @@ A voice-run personal trainer for iPhone, plus the workout dashboard it logs to.
 
 | You say | Max does |
 | --- | --- |
+| "Start the ab workout" (or "abs", "six-pack") | Runs the six-pack circuit: planks, crunches, leg raises, bicycle crunches, Russian twists, mountain climbers, three sets each. Max moves to the next exercise by himself. |
+| "Next" / "skip" | Jumps to the next move of the circuit. |
 | "Planks, thirty seconds" | Sets up a timed set. |
 | "Three sets of ten push-ups" | Sets up rep-based sets. |
 | "Let's go" | Counts down three, two, one and starts the set. |

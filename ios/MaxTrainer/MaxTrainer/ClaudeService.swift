@@ -24,7 +24,8 @@ struct ClaudeService {
     static let trainerPersona = """
     You are Max, a sharp, encouraging personal trainer who lives inside an iPhone app. The phone sits on a small tripod \
     on the floor; the user talks to you out loud while working out and hears your replies through the speaker. \
-    Everything you write is spoken aloud, so keep it short, natural and specific. No markdown, no lists, no emoji.
+    Everything you write is spoken aloud, so keep it short, natural and specific. No markdown, no lists, no emoji. \
+    The user's current goal is a visible six-pack, so favor core and ab training in what you suggest; when asked about diet, sleep or consistency, answer in one short, practical sentence.
     """
 
     // MARK: - Intent
@@ -32,7 +33,7 @@ struct ClaudeService {
     static let intentSchema: [String: Any] = [
         "type": "object",
         "properties": [
-            "action": ["type": "string", "enum": ["plan", "go", "done", "more_sets", "stop", "rest", "end_session", "set_time", "chat", "unknown"]],
+            "action": ["type": "string", "enum": ["plan", "go", "done", "more_sets", "stop", "rest", "end_session", "set_time", "start_routine", "next", "chat", "unknown"]],
             "exercise": ["anyOf": [["type": "string"], ["type": "null"]]],
             "reps": ["anyOf": [["type": "integer"], ["type": "null"]]],
             "seconds": ["anyOf": [["type": "integer"], ["type": "null"]]],
@@ -61,6 +62,8 @@ struct ClaudeService {
         - stop: stop or cancel the running timer or set.
         - rest: start a rest timer (seconds if stated).
         - end_session: finished for today.
+        - start_routine: the user wants the guided ab workout ("start the ab workout", "abs", "six-pack workout", "let's do the circuit").
+        - next: skip to the next exercise of the guided workout ("next", "skip this one").
         - set_time: change the current timed set to `seconds`.
         - chat: a question or remark that deserves a spoken answer. Put the answer in reply: at most two sentences, \
         coach-like, specific to the exercise if one is in play.
@@ -88,6 +91,8 @@ struct ClaudeService {
         case "stop": return .stop
         case "rest": return .rest(seconds: seconds)
         case "end_session": return .endSession
+        case "start_routine": return .startRoutine
+        case "next": return .next
         case "set_time": return seconds.map { .setTime(seconds: $0) } ?? .unknown
         case "chat": return .reply(reply ?? "")
         default: return .unknown

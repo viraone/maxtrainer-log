@@ -24,6 +24,8 @@ final class TrainerEngine: ObservableObject {
     @Published var started = false
     @Published var feedbackText: String?
     @Published var lastProblem: String?
+    /// Position in the guided ab circuit, nil when not running it.
+    @Published var routineIndex: Int?
 
     let settings = AppSettings.shared
     let listener = SpeechListener()
@@ -60,7 +62,7 @@ final class TrainerEngine: ObservableObject {
         let ok = await listener.requestPermissions()
         if ok { listener.start() }
 
-        await say("Hey, I'm Max. What are we doing today?")
+        await say("Hey, I'm Max. Today we're building your six-pack. Say start the ab workout, or pick any move.")
         Task { await store.sync() }
     }
 
@@ -158,6 +160,7 @@ final class TrainerEngine: ObservableObject {
                 return
             }
             let sameExercise = plan?.name.lowercased() == name.lowercased()
+            if !sameExercise { routineIndex = nil }
             let mode: SetMode
             if let seconds { mode = .timed(seconds: seconds) }
             else if let reps { mode = .reps(target: reps) }
@@ -260,6 +263,26 @@ final class TrainerEngine: ObservableObject {
 
         case .reply(let text):
             await say(text.isEmpty ? "Say that again?" : text)
+
+        case .startRoutine:
+            guard phase != .active, phase != .countdown else {
+                await say("Finish this set first, or say stop.")
+                return
+            }
+            timerTask?.cancel()
+            awaitingRepCount = false
+            routineIndex = 0
+            let first = AbsProgram.steps[0]
+            plan = first
+            phase = .ready
+            await say("Six-pack circuit. \(AbsProgram.steps.count) moves, three sets each. First up: \(first.spoken), \(first.setsRemaining) sets. Say let's go when you're ready.")
+
+        case .next:
+            guard phase != .active, phase != .countdown else {
+                await say("Finish this set first, or say stop.")
+                return
+            }
+            await advanceRoutine(skipped: true)
 
         case .unknown:
             if raw.split(separator: " ").count >= 3 { await say("Say that again?") }
@@ -370,6 +393,9 @@ final class TrainerEngine: ObservableObject {
         phase = .ready
         if p.setsRemaining > 0 {
             await say("Logged. \(p.setsRemaining) to go. Say let's go when you're ready.")
+        } else if routineIndex != nil {
+            await say("Logged.")
+            await advanceRoutine(skipped: false)
         } else {
             await say("Logged. That's \(p.setsDone) \(p.setsDone == 1 ? "set" : "sets") of \(p.name). Say more sets, or give me the next exercise.")
         }
@@ -423,6 +449,7 @@ final class TrainerEngine: ObservableObject {
     private func endSession() async {
         timerTask?.cancel()
         timerTask = nil
+        routineIndex = nil
         phase = .idle
         awaitingRepCount = false
         let sets = sessionSets
@@ -465,6 +492,39 @@ final class TrainerEngine: ObservableObject {
             return "\(group.count) \(group.count == 1 ? "set" : "sets") of \(name)" + (amount.isEmpty ? "" : ", \(amount)")
         }
         return "Nice work. \(sets.count) \(sets.count == 1 ? "set" : "sets") total: " + parts.joined(separator: "; ") + "."
+    }
+
+    // MARK: - Six-pack circuit
+
+    /// Move on to the next exercise of the guided circuit (after finishing one, or when the user skips).
+    private func advanceRoutine(skipped: Bool) async {
+        guard let i = routineIndex else {
+            await say("Say start the ab workout and I'll run the circuit.")
+            return
+        }
+        let finished = plan?.name ?? "that one"
+        let next = i + 1
+        if next < AbsProgram.steps.count {
+            routineIndex = next
+            let step = AbsProgram.steps[next]
+            plan = step
+            phase = .ready
+            let lead = skipped ? "Skipping \(finished)." : "\(finished) done."
+            await say("\(lead) Next up: \(step.spoken), \(step.setsRemaining) sets. Say let's go when you're ready.")
+        } else {
+            routineIndex = nil
+            phase = .ready
+            await say(skipped ? "That was the last move." : "That's the whole circuit. Your abs are done for today.")
+            await say("Say that's it for today to wrap up, or say more sets.")
+        }
+    }
+
+    /// One-tap pick from the home screen.
+    func choose(_ name: String, mode: SetMode, sets: Int = 3) async {
+        switch mode {
+        case .timed(let s): await apply(.plan(exercise: name, reps: nil, seconds: s, sets: sets), raw: name)
+        case .reps(let r): await apply(.plan(exercise: name, reps: r, seconds: nil, sets: sets), raw: name)
+        }
     }
 
     // MARK: - Speaking

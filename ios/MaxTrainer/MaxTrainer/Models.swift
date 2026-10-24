@@ -102,6 +102,10 @@ enum Intent: Equatable {
     case question(String)
     /// Something Max should say back, already written.
     case reply(String)
+    /// "Start the ab workout": run the guided circuit.
+    case startRoutine
+    /// Skip to the next move of the circuit.
+    case next
     case unknown
 }
 
@@ -109,4 +113,39 @@ struct FormFeedback: Codable, Equatable {
     var summary: String
     var cues: [String]
     var improvements: [String]
+}
+
+// MARK: - Six-pack focus
+
+struct QuickPick {
+    let name: String
+    let label: String
+    let mode: SetMode
+}
+
+/// The app's default focus: abs. A guided circuit plus one-tap ab moves.
+enum AbsProgram {
+    static let title = "Six-Pack Circuit"
+
+    static let steps: [ExercisePlan] = [
+        ExercisePlan(name: "Planks", mode: .timed(seconds: 30), setsRemaining: 3),
+        ExercisePlan(name: "Crunches", mode: .reps(target: 20), setsRemaining: 3),
+        ExercisePlan(name: "Leg Raises", mode: .reps(target: 15), setsRemaining: 3),
+        ExercisePlan(name: "Bicycle Crunches", mode: .reps(target: 20), setsRemaining: 3),
+        ExercisePlan(name: "Russian Twists", mode: .reps(target: 20), setsRemaining: 3),
+        ExercisePlan(name: "Mountain Climbers", mode: .timed(seconds: 30), setsRemaining: 3),
+    ]
+
+    static let quickPicks: [QuickPick] = [
+        QuickPick(name: "Planks", label: "Planks · 30s", mode: .timed(seconds: 30)),
+        QuickPick(name: "Crunches", label: "Crunches · 20", mode: .reps(target: 20)),
+        QuickPick(name: "Leg Raises", label: "Leg Raises · 15", mode: .reps(target: 15)),
+        QuickPick(name: "Bicycle Crunches", label: "Bicycles · 20", mode: .reps(target: 20)),
+        QuickPick(name: "Russian Twists", label: "Russian Twists · 20", mode: .reps(target: 20)),
+        QuickPick(name: "Mountain Climbers", label: "Mountain Climbers · 30s", mode: .timed(seconds: 30)),
+        QuickPick(name: "Dead Bug", label: "Dead Bug · 12", mode: .reps(target: 12)),
+        QuickPick(name: "Hollow Hold", label: "Hollow Hold · 20s", mode: .timed(seconds: 20)),
+        QuickPick(name: "Reverse Crunches", label: "Reverse Crunch · 15", mode: .reps(target: 15)),
+        QuickPick(name: "Side Plank", label: "Side Plank · 20s", mode: .timed(seconds: 20)),
+    ]
 }
