@@ -33,7 +33,7 @@ struct ClaudeService {
     static let intentSchema: [String: Any] = [
         "type": "object",
         "properties": [
-            "action": ["type": "string", "enum": ["plan", "go", "done", "more_sets", "stop", "rest", "end_session", "set_time", "start_routine", "next", "chat", "unknown"]],
+            "action": ["type": "string", "enum": ["plan", "go", "done", "more_sets", "stop", "rest", "end_session", "set_time", "start_routine", "next", "explain", "chat", "unknown"]],
             "exercise": ["anyOf": [["type": "string"], ["type": "null"]]],
             "reps": ["anyOf": [["type": "integer"], ["type": "null"]]],
             "seconds": ["anyOf": [["type": "integer"], ["type": "null"]]],
@@ -64,6 +64,7 @@ struct ClaudeService {
         - end_session: finished for today.
         - start_routine: the user wants the guided ab workout ("start the ab workout", "abs", "six-pack workout", "let's do the circuit").
         - next: skip to the next exercise of the guided workout ("next", "skip this one").
+        - explain: the user asks how to do a move or what it is ("how do I do bicycle crunches", "show me a dead bug",         "what's a hollow hold", "how do I do this one"). Put the move's name in exercise, or null for the current one.         The app has its own written and spoken guide, so leave reply null.
         - set_time: change the current timed set to `seconds`.
         - chat: a question or remark that deserves a spoken answer. Put the answer in reply: at most two sentences, \
         coach-like, specific to the exercise if one is in play.
@@ -93,6 +94,7 @@ struct ClaudeService {
         case "end_session": return .endSession
         case "start_routine": return .startRoutine
         case "next": return .next
+        case "explain": return .explain(exercise)
         case "set_time": return seconds.map { .setTime(seconds: $0) } ?? .unknown
         case "chat": return .reply(reply ?? "")
         default: return .unknown

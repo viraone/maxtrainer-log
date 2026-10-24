@@ -10,6 +10,8 @@
 		00F1101D191FA7301C8144F2 /* Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7875333D262F52DEFEE00E /* Voice.swift */; };
 		0F7146E323B59BA35C390AB3 /* TrainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA7BA4615BC2E2681CA27FE /* TrainerView.swift */; };
 		12C42A09129F886E92D9182C /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697176F7D626A2DE8F6E508D /* ClaudeService.swift */; };
+		1376D77849B176CE183DAC94 /* ExerciseGuides.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D9A7F2ED851ED059B09E33 /* ExerciseGuides.swift */; };
+		18619365799F6DDB78066320 /* ExerciseGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED4DA480E5C82330FE7A2DC5 /* ExerciseGuideView.swift */; };
 		21B311C193F6855A164D849A /* WorkoutLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0067937ED0F89EB06D614E /* WorkoutLogStore.swift */; };
 		322BF5D335BD100D24299F65 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 10A4813CF0FE2E7CD9AF7726 /* Assets.xcassets */; };
 		3D545A795C1682252CBF428B /* GitHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C547524936A505CAD488AF6 /* GitHubService.swift */; };
@@ -27,6 +29,7 @@
 /* Begin PBXFileReference section */
 		093D169D9622FD5B04F33A5D /* IntentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentParser.swift; sourceTree = "<group>"; };
 		10A4813CF0FE2E7CD9AF7726 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		18D9A7F2ED851ED059B09E33 /* ExerciseGuides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseGuides.swift; sourceTree = "<group>"; };
 		28ABA6140FF2BABB538A74F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2C547524936A505CAD488AF6 /* GitHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubService.swift; sourceTree = "<group>"; };
 		42074F62E6DDA5779F9F402C /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
@@ -40,6 +43,7 @@
 		C3CD8B18DF4347D5E21531C1 /* MaxTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxTrainerApp.swift; sourceTree = "<group>"; };
 		C65276C4347A17327023364B /* TrainerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerEngine.swift; sourceTree = "<group>"; };
 		EC404E46A09B219AA6C927A1 /* SpeechListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechListener.swift; sourceTree = "<group>"; };
+		ED4DA480E5C82330FE7A2DC5 /* ExerciseGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseGuideView.swift; sourceTree = "<group>"; };
 		F3F51ABB3E533ABD0A5340D6 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		FAA7BA4615BC2E2681CA27FE /* TrainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -59,6 +63,8 @@
 				10A4813CF0FE2E7CD9AF7726 /* Assets.xcassets */,
 				42074F62E6DDA5779F9F402C /* CameraService.swift */,
 				697176F7D626A2DE8F6E508D /* ClaudeService.swift */,
+				18D9A7F2ED851ED059B09E33 /* ExerciseGuides.swift */,
+				ED4DA480E5C82330FE7A2DC5 /* ExerciseGuideView.swift */,
 				2C547524936A505CAD488AF6 /* GitHubService.swift */,
 				28ABA6140FF2BABB538A74F9 /* Info.plist */,
 				093D169D9622FD5B04F33A5D /* IntentParser.swift */,
@@ -157,6 +163,8 @@
 			files = (
 				8DF2B488800B26E7AB46ED2D /* CameraService.swift in Sources */,
 				12C42A09129F886E92D9182C /* ClaudeService.swift in Sources */,
+				18619365799F6DDB78066320 /* ExerciseGuideView.swift in Sources */,
+				1376D77849B176CE183DAC94 /* ExerciseGuides.swift in Sources */,
 				3D545A795C1682252CBF428B /* GitHubService.swift in Sources */,
 				80326C81C9F3BA52FE72A375 /* IntentParser.swift in Sources */,
 				709C2DC94D9EC0B83433F10B /* LogView.swift in Sources */,

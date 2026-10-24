@@ -130,6 +130,18 @@ enum IntentParser {
             if let n = reps(in: words) { return .plan(exercise: nil, reps: n, seconds: nil, sets: nil) }
         }
 
+        // "How do I do bicycle crunches", "show me leg raises", "what is a dead bug", "explain this one"
+        let explainLead = ["how do i do", "how do you do", "how to do", "how do i", "show me how to do", "show me", "what is a", "what is", "what are",
+                           "whats a", "whats", "explain", "demo", "demonstrate", "teach me", "how should i do", "how do we do", "how does"]
+        for lead in explainLead where t == lead || t.hasPrefix(lead + " ") {
+            var rest = String(t.dropFirst(lead.count)).trimmingCharacters(in: .whitespaces)
+            for junk in ["a ", "an ", "the ", "some "] where rest.hasPrefix(junk) { rest = String(rest.dropFirst(junk.count)) }
+            for tail in [" work", " look like", " properly", " correctly", " right", " again", " please", " max"] where rest.hasSuffix(tail) { rest = String(rest.dropLast(tail.count)) }
+            if ["this", "this one", "it", "that", "that one", "this move", "this exercise", ""].contains(rest) { return .explain(nil) }
+            if ExerciseGuides.find(rest) != nil { return .explain(rest) }
+            break
+        }
+
         // Questions
         let questionStarts = ["how", "what", "why", "should", "can", "could", "is", "are", "do", "does", "which", "when", "any", "whats", "tell me"]
         let planningVerbs = ["do", "start", "begin"]

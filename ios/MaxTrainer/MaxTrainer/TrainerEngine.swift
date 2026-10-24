@@ -26,6 +26,8 @@ final class TrainerEngine: ObservableObject {
     @Published var lastProblem: String?
     /// Position in the guided ab circuit, nil when not running it.
     @Published var routineIndex: Int?
+    /// A guide the view should present ("how do I do this?").
+    @Published var showGuide: ExerciseGuide?
 
     let settings = AppSettings.shared
     let listener = SpeechListener()
@@ -283,6 +285,26 @@ final class TrainerEngine: ObservableObject {
                 return
             }
             await advanceRoutine(skipped: true)
+
+        case .explain(let name):
+            let guide: ExerciseGuide?
+            if let name, !name.isEmpty {
+                guide = ExerciseGuides.find(name)
+            } else if let plan {
+                guide = ExerciseGuides.find(plan.name)
+            } else {
+                guide = nil
+            }
+            guard let guide else {
+                if let name, !name.isEmpty {
+                    await say("I don't have a guide for \(name) yet. Pick a move from the list and I'll walk you through it.")
+                } else {
+                    await say("Pick a move first, then ask me how to do it.")
+                }
+                return
+            }
+            showGuide = guide
+            await say(guide.spoken)
 
         case .unknown:
             if raw.split(separator: " ").count >= 3 { await say("Say that again?") }

@@ -43,6 +43,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         tip("Start the ab workout", "Runs the six-pack circuit, move by move.")
                         tip("Next · skip", "Jumps to the next move of the circuit.")
+                        tip("How do I do bicycle crunches?", "Opens the guide and Max talks you through it.")
                         tip("Planks, thirty seconds", "Sets up a timed set.")
                         tip("Three sets of ten push-ups", "Sets up rep-based sets.")
                         tip("Let's go", "Starts the countdown and the set.")

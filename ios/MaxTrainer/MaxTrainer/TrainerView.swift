@@ -8,6 +8,7 @@ struct TrainerView: View {
     @State private var showTyping = false
     @State private var typed = ""
     @FocusState private var typingFocused: Bool
+    @State private var guide: ExerciseGuide?
 
     var body: some View {
         ZStack {
@@ -36,6 +37,10 @@ struct TrainerView: View {
         .task { await engine.start() }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLog) { LogView().environmentObject(engine) }
+        .sheet(item: $guide) { g in ExerciseGuideView(guide: g).environmentObject(engine) }
+        .onChange(of: engine.showGuide) { _, g in
+            if let g { guide = g; engine.showGuide = nil }
+        }
     }
 
     // MARK: - Top
@@ -124,6 +129,13 @@ struct TrainerView: View {
             if let plan = engine.plan {
                 HStack {
                     Text(plan.name).font(.title3.weight(.bold))
+                    if let g = ExerciseGuides.find(plan.name) {
+                        Button { guide = g } label: {
+                            Image(systemName: "questionmark.circle.fill").font(.body).foregroundStyle(Color.accent)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("How to do \(plan.name)")
+                    }
                     Text("·").foregroundStyle(.secondary)
                     Text(plan.shortLabel).font(.title3.weight(.semibold)).foregroundStyle(Color.accent)
                     Spacer()
@@ -132,16 +144,21 @@ struct TrainerView: View {
             } else {
                 Text("SIX-PACK FOCUS").font(.caption.weight(.black)).tracking(1.6).foregroundStyle(Color.accent)
                 Text("Build your abs").font(.title2.weight(.heavy))
-                Text("\(AbsProgram.steps.count) moves · 3 sets each · about 25 minutes. Say “start the ab workout”, or pick a move.")
+                Text("\(AbsProgram.steps.count) moves · 3 sets each · about 25 minutes. Say “start the ab workout”, or tap a move to see how it's done.")
                     .font(.footnote).foregroundStyle(.secondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(AbsProgram.quickPicks, id: \.name) { pick in
-                            Button { Task { await engine.choose(pick.name, mode: pick.mode) } } label: {
-                                Text(pick.label)
-                                    .font(.footnote.weight(.semibold))
-                                    .padding(.horizontal, 12).padding(.vertical, 8)
-                                    .background(Capsule().fill(Color.white.opacity(0.12)))
+                            Button {
+                                if let g = ExerciseGuides.find(pick.name) { guide = g }
+                                else { Task { await engine.choose(pick.name, mode: pick.mode) } }
+                            } label: {
+                                HStack(spacing: 5) {
+                                    Text(pick.label).font(.footnote.weight(.semibold))
+                                    Image(systemName: "questionmark.circle").font(.caption2).foregroundStyle(Color.accent)
+                                }
+                                .padding(.horizontal, 12).padding(.vertical, 8)
+                                .background(Capsule().fill(Color.white.opacity(0.12)))
                             }
                             .buttonStyle(.plain)
                         }

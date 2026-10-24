@@ -106,6 +106,8 @@ enum Intent: Equatable {
     case startRoutine
     /// Skip to the next move of the circuit.
     case next
+    /// "How do I do bicycle crunches?" — show and read the guide (nil = the current move).
+    case explain(String?)
     case unknown
 }
 
