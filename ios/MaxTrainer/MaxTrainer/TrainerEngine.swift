@@ -64,7 +64,7 @@ final class TrainerEngine: ObservableObject {
         let ok = await listener.requestPermissions()
         if ok { listener.start() }
 
-        await say("Hey, I'm Max. Today we're building your six-pack. Say start the ab workout, or pick any move.")
+        await say("Hey, I'm Max. Tell me what we're doing. For example: let's do planks.")
         Task { await store.sync() }
     }
 
@@ -75,7 +75,7 @@ final class TrainerEngine: ObservableObject {
         case .active: return plan.map { if case .timed = $0.mode { return "Timer running" } else { return "Say “done” when you finish" } } ?? "Go"
         case .countdown: return "Get ready"
         case .resting: return "Resting"
-        case .ready: return listener.isListening ? "Say “let's go”" : "Ready"
+        case .ready: return listener.isListening ? "Say “let's go baby”" : "Ready"
         case .idle: return listener.isListening ? "Listening" : (listener.available ? "Starting mic…" : "Mic unavailable, type below")
         }
     }
@@ -167,13 +167,14 @@ final class TrainerEngine: ObservableObject {
             if let seconds { mode = .timed(seconds: seconds) }
             else if let reps { mode = .reps(target: reps) }
             else if sameExercise, let current = plan?.mode { mode = current }
+            else if let guide = ExerciseGuides.find(name) { mode = guide.defaultMode }
             else { mode = .reps(target: nil) }
             let count = sets ?? 1
             plan = ExercisePlan(name: name, mode: mode, setsRemaining: count, setsDone: sameExercise ? (plan?.setsDone ?? 0) : 0)
             phase = .ready
-            var line = count > 1 ? "\(count) sets of \(plan!.spoken)." : "\(plan!.spoken)."
+            var line = "Got it. " + (count > 1 ? "\(count) sets of \(plan!.spoken)." : "\(plan!.spoken).")
             if case .reps(nil) = mode { line += " Tell me how many when you're done." }
-            line += " Get set, and say let's go."
+            line += " Tell me when to start recording you."
             await say(line)
 
         case .go:
@@ -230,14 +231,15 @@ final class TrainerEngine: ObservableObject {
             p.setsRemaining += n
             plan = p
             phase = .ready
-            await say("\(n) more \(n == 1 ? "set" : "sets") of \(p.spoken). Say let's go when you're ready.")
+            await say("\(n) more \(n == 1 ? "set" : "sets") of \(p.spoken). Tell me when to start recording you.")
 
         case .stop:
             switch phase {
             case .active, .countdown:
                 timerTask?.cancel()
+                camera.stopRecording(save: false, label: plan?.name ?? "")
                 phase = .ready
-                await say("Stopped. Say let's go to run it again, or tell me what's next.")
+                await say("Stopped. Say let's go baby to run it again, or tell me what's next.")
             case .resting:
                 timerTask?.cancel()
                 phase = .ready
@@ -277,7 +279,7 @@ final class TrainerEngine: ObservableObject {
             let first = AbsProgram.steps[0]
             plan = first
             phase = .ready
-            await say("Six-pack circuit. \(AbsProgram.steps.count) moves, three sets each. First up: \(first.spoken), \(first.setsRemaining) sets. Say let's go when you're ready.")
+            await say("Got it. Six-pack circuit, \(AbsProgram.steps.count) moves, three sets each. First up: \(first.spoken). Tell me when to start recording you.")
 
         case .next:
             guard phase != .active, phase != .countdown else {
@@ -320,8 +322,9 @@ final class TrainerEngine: ObservableObject {
         midSetFrame = nil
         elapsed = 0
         if case .timed(let s) = p.mode { remaining = s }
-        await say("Set \(setNumber). Three, two, one, go!")
-        guard phase == .countdown else { return }
+        if settings.recordSets, camera.isRunning, !camera.unavailable { camera.startRecording() }
+        await say("Recording. Set \(setNumber). Three, two, one, go!")
+        guard phase == .countdown else { camera.stopRecording(save: false, label: p.name); return }
         phase = .active
         switch p.mode {
         case .timed(let total):
@@ -386,8 +389,9 @@ final class TrainerEngine: ObservableObject {
             await say("Okay, stopping at \(done) seconds.")
             await logSet(reps: nil, seconds: done)
         } else {
+            camera.stopRecording(save: false, label: plan?.name ?? "")
             phase = .ready
-            await say("Cancelled. Say let's go when you're ready.")
+            await say("Cancelled. Tell me when to start recording you.")
         }
     }
 
@@ -405,6 +409,7 @@ final class TrainerEngine: ObservableObject {
 
     private func logSet(reps: Int?, seconds: Int?) async {
         guard var p = plan else { return }
+        camera.stopRecording(save: true, label: p.name)
         p.setsDone += 1
         p.setsRemaining = max(0, p.setsRemaining - 1)
         plan = p
@@ -414,7 +419,7 @@ final class TrainerEngine: ObservableObject {
         sessionSets.append(set)
         phase = .ready
         if p.setsRemaining > 0 {
-            await say("Logged. \(p.setsRemaining) to go. Say let's go when you're ready.")
+            await say("Logged. \(p.setsRemaining) to go. Tell me when to start recording you.")
         } else if routineIndex != nil {
             await say("Logged.")
             await advanceRoutine(skipped: false)
@@ -535,7 +540,7 @@ final class TrainerEngine: ObservableObject {
             plan = step
             phase = .ready
             let lead = skipped ? "Skipping \(finished)." : "\(finished) done."
-            await say("\(lead) Next up: \(step.spoken), \(step.setsRemaining) sets. Say let's go when you're ready.")
+            await say("\(lead) Next up: \(step.spoken), \(step.setsRemaining) sets. Tell me when to start recording you.")
         } else {
             routineIndex = nil
             phase = .ready

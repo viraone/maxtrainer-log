@@ -56,7 +56,17 @@ struct TrainerView: View {
                 Text("MAX").font(.system(size: 20, weight: .black, design: .rounded)).foregroundStyle(Color.accent)
                 Text("TRAINER").font(.system(size: 20, weight: .black, design: .rounded)).foregroundStyle(.white)
             }
-            Spacer()
+            .fixedSize()
+            .layoutPriority(2)
+            Spacer(minLength: 6)
+            if engine.camera.isRecording {
+                HStack(spacing: 5) {
+                    Circle().fill(.red).frame(width: 8, height: 8)
+                    Text("REC").font(.caption.weight(.black))
+                }
+                .padding(.horizontal, 9).padding(.vertical, 6)
+                .background(.red.opacity(0.22), in: Capsule())
+            }
             statusPill
             Button { showLog = true } label: { Image(systemName: "list.bullet.rectangle").font(.title3) }
             Button { showSettings = true } label: { Image(systemName: "gearshape.fill").font(.title3) }
@@ -73,6 +83,7 @@ struct TrainerView: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(.ultraThinMaterial, in: Capsule())
+        .layoutPriority(0)
     }
 
     private var statusColor: Color {
@@ -149,7 +160,7 @@ struct TrainerView: View {
             } else {
                 Text("SIX-PACK FOCUS").font(.caption.weight(.black)).tracking(1.6).foregroundStyle(Color.accent)
                 Text("Build your abs").font(.title2.weight(.heavy))
-                Text("\(AbsProgram.steps.count) moves · 3 sets each · about 25 minutes. Say “start the ab workout”, or tap a move to see how it's done.")
+                Text("Say “let's do planks”, then “let's go baby” when you're in position. Or say “start the ab workout” for the full circuit. Tap a move to see how it's done.")
                     .font(.footnote).foregroundStyle(.secondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -262,7 +273,7 @@ struct TrainerView: View {
     private var primaryButton: some View {
         switch engine.phase {
         case .ready, .resting:
-            bigButton("LET'S GO", color: Color.accent) { Task { await engine.handle("let's go") } }
+            bigButton("LET'S GO BABY", color: Color.accent) { Task { await engine.handle("let's go") } }
         case .active:
             if let plan = engine.plan, case .timed = plan.mode {
                 bigButton("STOP", color: .red) { Task { await engine.handle("stop") } }
@@ -273,7 +284,7 @@ struct TrainerView: View {
             bigButton("STOP", color: .red) { Task { await engine.handle("stop") } }
         case .idle:
             if engine.plan != nil {
-                bigButton("LET'S GO", color: Color.accent) { Task { await engine.handle("let's go") } }
+                bigButton("LET'S GO BABY", color: Color.accent) { Task { await engine.handle("let's go") } }
             } else {
                 bigButton("START AB WORKOUT", color: Color.accent) { Task { await engine.handle("start the ab workout") } }
             }

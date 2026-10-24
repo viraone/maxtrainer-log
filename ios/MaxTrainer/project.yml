@@ -26,6 +26,7 @@ targets:
         NSCameraUsageDescription: Max watches your form through the camera while you work out.
         NSMicrophoneUsageDescription: Max listens for your voice so you can run the workout hands-free.
         NSSpeechRecognitionUsageDescription: Max turns what you say into workout commands.
+        NSPhotoLibraryAddUsageDescription: Max saves a video clip of each set to your Photos so you can review your form.
         UIBackgroundModes: [audio]
         ITSAppUsesNonExemptEncryption: false
     settings:

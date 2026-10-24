@@ -26,6 +26,8 @@
 	<string>Max watches your form through the camera while you work out.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Max listens for your voice so you can run the workout hands-free.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Max saves a video clip of each set to your Photos so you can review your form.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Max turns what you say into workout commands.</string>
 	<key>UIBackgroundModes</key>

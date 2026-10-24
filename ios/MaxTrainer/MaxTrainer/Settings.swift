@@ -52,6 +52,7 @@ final class AppSettings: ObservableObject {
     @Published var voiceEnabled: Bool { didSet { defaults.set(voiceEnabled, forKey: "voiceEnabled") } }
     @Published var useFrontCamera: Bool { didSet { defaults.set(useFrontCamera, forKey: "useFrontCamera") } }
     @Published var formFeedback: Bool { didSet { defaults.set(formFeedback, forKey: "formFeedback") } }
+    @Published var recordSets: Bool { didSet { defaults.set(recordSets, forKey: "recordSets") } }
 
     static let defaultModel = "claude-opus-5-5"
 
@@ -66,6 +67,7 @@ final class AppSettings: ObservableObject {
         voiceEnabled = defaults.object(forKey: "voiceEnabled") as? Bool ?? true
         useFrontCamera = defaults.object(forKey: "useFrontCamera") as? Bool ?? true
         formFeedback = defaults.object(forKey: "formFeedback") as? Bool ?? true
+        recordSets = defaults.object(forKey: "recordSets") as? Bool ?? true
     }
 
     var hasClaude: Bool { !anthropicKey.trimmingCharacters(in: .whitespaces).isEmpty }

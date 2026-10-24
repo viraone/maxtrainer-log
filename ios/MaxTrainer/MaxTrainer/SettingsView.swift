@@ -34,19 +34,25 @@ struct SettingsView: View {
                     Text("Each logged set is committed to \(settings.repoPath) and shows up on the GitHub Pages dashboard. Sets are kept on the phone until they sync.")
                 }
 
-                Section("Voice & camera") {
+                Section {
                     Toggle("Max talks", isOn: $settings.voiceEnabled)
                     Toggle("Front camera", isOn: $settings.useFrontCamera)
+                    Toggle("Record each set to Photos", isOn: $settings.recordSets)
+                } header: {
+                    Text("Voice & camera")
+                } footer: {
+                    Text("Recording starts on “let's go baby” and stops when the set ends. Clips are video only and land in your Photos library.")
                 }
 
                 Section("How to talk to Max") {
                     VStack(alignment: .leading, spacing: 6) {
+                        tip("Let's do planks", "Picks a move. Max replies: tell me when to start recording you.")
+                        tip("Let's go baby", "Starts recording and the set.")
                         tip("Start the ab workout", "Runs the six-pack circuit, move by move.")
                         tip("Next · skip", "Jumps to the next move of the circuit.")
                         tip("How do I do bicycle crunches?", "Opens the guide and Max talks you through it.")
                         tip("Planks, thirty seconds", "Sets up a timed set.")
                         tip("Three sets of ten push-ups", "Sets up rep-based sets.")
-                        tip("Let's go", "Starts the countdown and the set.")
                         tip("Done · I did eight", "Ends a rep set (optionally with the count).")
                         tip("Three more sets", "Adds sets of the current exercise.")
                         tip("Stop", "Cancels the running timer.")

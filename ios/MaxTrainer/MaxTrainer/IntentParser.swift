@@ -55,7 +55,9 @@ enum IntentParser {
     // MARK: - Fast path (checked on every partial transcript)
 
     static let goPhrases = ["lets go", "let go", "go", "start", "begin", "start the timer", "start timer",
-                            "im ready", "ready", "go go go", "here we go", "and go", "lets do it", "lets go max"]
+                            "im ready", "ready", "go go go", "here we go", "and go", "lets do it", "lets go max",
+                            "lets go baby", "go baby", "lets go babe", "lets do this", "start recording", "start recording me",
+                            "record me", "start the recording", "im ready baby", "ready baby", "hit it", "lets roll"]
     static let stopPhrases = ["stop", "cancel", "hold on", "pause", "wait", "stop the timer", "stop timer",
                               "hold up", "stop stop"]
     static let donePhrases = ["done", "im done", "finished", "all done", "thats it", "thats all", "im finished",
