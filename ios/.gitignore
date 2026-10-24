@@ -1,0 +1,6 @@
+# Xcode
+MaxTrainer/MaxTrainer.xcodeproj/xcuserdata/
+MaxTrainer/MaxTrainer.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.xcuserstate

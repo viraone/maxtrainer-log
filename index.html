@@ -108,10 +108,15 @@ async function load() {
     return;
   }
 
-  // Group by date
+  // Group by local calendar day (timestamps are UTC; an evening set belongs to that evening)
+  const pad = (n) => String(n).padStart(2, "0");
+  const localKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const fmtTime = (s) => (s >= 60 ? `${Math.floor(s / 60)}:${pad(s % 60)}` : `${s}s`);
+  const amount = (s) => (s.duration_seconds != null ? fmtTime(s.duration_seconds) : `${s.reps ?? "?"} reps`);
   const byDate = {};
   for (const w of workouts) {
-    const date = (w.timestamp || "").slice(0, 10) || "Unknown";
+    const d = w.timestamp ? new Date(w.timestamp) : null;
+    const date = d && !isNaN(d) ? localKey(d) : "Unknown";
     (byDate[date] ||= []).push(w);
   }
   const dates = Object.keys(byDate).sort().reverse();
@@ -119,11 +124,13 @@ async function load() {
   // Stats
   const totalSets = workouts.length;
   const totalReps = workouts.reduce((a, w) => a + (w.reps || 0), 0);
+  const totalSecs = workouts.reduce((a, w) => a + (w.duration_seconds || 0), 0);
   const exercises = new Set(workouts.map((w) => w.exercise)).size;
   statsEl.innerHTML = `
     <div class="stat"><div class="num">${dates.length}</div><div class="label">Days trained</div></div>
     <div class="stat"><div class="num">${totalSets}</div><div class="label">Total sets</div></div>
     <div class="stat"><div class="num">${totalReps}</div><div class="label">Total reps</div></div>
+    ${totalSecs ? `<div class="stat"><div class="num">${fmtTime(totalSecs)}</div><div class="label">Time under tension</div></div>` : ""}
     <div class="stat"><div class="num">${exercises}</div><div class="label">Exercises</div></div>`;
 
   // Day cards
@@ -143,11 +150,13 @@ async function load() {
     }
 
     const dayReps = sets.reduce((a, s) => a + (s.reps || 0), 0);
+    const daySecs = sets.reduce((a, s) => a + (s.duration_seconds || 0), 0);
+    const dayMeta = [`${sets.length} sets`, dayReps ? `${dayReps} reps` : "", daySecs ? fmtTime(daySecs) : ""].filter(Boolean).join(" · ");
     let exHtml = "";
     for (const ex of order) {
       const chips = byEx[ex].map((s, i) => {
         const note = (s.improvements && s.improvements[0]) ? `<span class="note">🔧 ${esc(s.improvements[0])}</span>` : "";
-        return `<div class="set-chip">Set ${i + 1}: <b>${esc(s.reps ?? "?")} reps</b>${note}</div>`;
+        return `<div class="set-chip">Set ${s.set_number ?? i + 1}: <b>${esc(amount(s))}</b>${note}</div>`;
       }).join("");
       exHtml += `<div class="exercise"><div class="ex-name">${esc(ex)}</div><div class="sets">${chips}</div></div>`;
     }
@@ -156,7 +165,7 @@ async function load() {
       <div class="day">
         <div class="day-head">
           <h2>${esc(dateStr)}</h2>
-          <span class="meta">${sets.length} sets · ${dayReps} reps</span>
+          <span class="meta">${dayMeta}</span>
         </div>
         ${exHtml}
       </div>`;
