@@ -33,6 +33,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.viraone.maxtrainer
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: V9MXHWMVTM
         GENERATE_INFOPLIST_FILE: false
         INFOPLIST_FILE: MaxTrainer/Info.plist
         ENABLE_USER_SCRIPT_SANDBOXING: true
