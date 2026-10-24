@@ -68,7 +68,7 @@ final class Voice: NSObject, ObservableObject {
     }
 
     static func pickVoice() -> AVSpeechSynthesisVoice? {
-        let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "en-US" }
+        let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "en-US" && Voice.isRealVoice($0) }
         let ranked = voices.sorted { a, b in
             // Premium and enhanced voices sound natural; the built-in compact ones are the robotic ones.
             func score(_ v: AVSpeechSynthesisVoice) -> Int {
@@ -83,10 +83,16 @@ final class Voice: NSObject, ObservableObject {
         return ranked.first ?? AVSpeechSynthesisVoice(language: "en-US")
     }
 
+    /// Skips Apple's novelty voices (Bells, Boing, Bad News…) and the Eloquence set (Eddy, Flo, Grandpa…).
+    static func isRealVoice(_ v: AVSpeechSynthesisVoice) -> Bool {
+        let id = v.identifier
+        return !id.hasPrefix("com.apple.speech.synthesis.voice") && !id.hasPrefix("com.apple.eloquence")
+    }
+
     /// English voices installed on this device, best first.
     static func installedVoices() -> [AVSpeechSynthesisVoice] {
         AVSpeechSynthesisVoice.speechVoices()
-            .filter { $0.language.hasPrefix("en") }
+            .filter { $0.language.hasPrefix("en") && isRealVoice($0) }
             .sorted { a, b in
                 func q(_ v: AVSpeechSynthesisVoice) -> Int { v.quality == .premium ? 3 : v.quality == .enhanced ? 2 : 1 }
                 if q(a) != q(b) { return q(a) > q(b) }
