@@ -19,6 +19,7 @@
 		55CD489708752FAA76DFC664 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70E5825DCF7BCD61E4C0B607 /* Models.swift */; };
 		709C2DC94D9EC0B83433F10B /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65614AC1DB3049E30231029E /* LogView.swift */; };
 		80326C81C9F3BA52FE72A375 /* IntentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 093D169D9622FD5B04F33A5D /* IntentParser.swift */; };
+		81A732E55011E5B2FEF5CE2C /* VoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5BD2DAE6E481618E65AF69 /* VoicePickerView.swift */; };
 		8DF2B488800B26E7AB46ED2D /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42074F62E6DDA5779F9F402C /* CameraService.swift */; };
 		B696DE4F8199F29AE05EAB89 /* TrainerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65276C4347A17327023364B /* TrainerEngine.swift */; };
 		CF5036C41869BCA04B0E8C18 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5403EF6DB163F035346FE0F7 /* SettingsView.swift */; };
@@ -39,6 +40,7 @@
 		65614AC1DB3049E30231029E /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		697176F7D626A2DE8F6E508D /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
 		70E5825DCF7BCD61E4C0B607 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		8C5BD2DAE6E481618E65AF69 /* VoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePickerView.swift; sourceTree = "<group>"; };
 		9DCF5AD1B84CAF7622F203C9 /* MaxTrainer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MaxTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD7875333D262F52DEFEE00E /* Voice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Voice.swift; sourceTree = "<group>"; };
 		C3CD8B18DF4347D5E21531C1 /* MaxTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxTrainerApp.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 				C65276C4347A17327023364B /* TrainerEngine.swift */,
 				FAA7BA4615BC2E2681CA27FE /* TrainerView.swift */,
 				AD7875333D262F52DEFEE00E /* Voice.swift */,
+				8C5BD2DAE6E481618E65AF69 /* VoicePickerView.swift */,
 				5A0067937ED0F89EB06D614E /* WorkoutLogStore.swift */,
 			);
 			path = MaxTrainer;
@@ -180,6 +183,7 @@
 				B696DE4F8199F29AE05EAB89 /* TrainerEngine.swift in Sources */,
 				0F7146E323B59BA35C390AB3 /* TrainerView.swift in Sources */,
 				00F1101D191FA7301C8144F2 /* Voice.swift in Sources */,
+				81A732E55011E5B2FEF5CE2C /* VoicePickerView.swift in Sources */,
 				21B311C193F6855A164D849A /* WorkoutLogStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

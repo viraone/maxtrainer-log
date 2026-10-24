@@ -53,6 +53,8 @@ final class AppSettings: ObservableObject {
     @Published var useFrontCamera: Bool { didSet { defaults.set(useFrontCamera, forKey: "useFrontCamera") } }
     @Published var formFeedback: Bool { didSet { defaults.set(formFeedback, forKey: "formFeedback") } }
     @Published var recordSets: Bool { didSet { defaults.set(recordSets, forKey: "recordSets") } }
+    /// AVSpeechSynthesisVoice identifier, or "" for the best installed voice.
+    @Published var voiceIdentifier: String { didSet { defaults.set(voiceIdentifier, forKey: "voiceIdentifier") } }
 
     static let defaultModel = "claude-opus-5-5"
 
@@ -68,6 +70,7 @@ final class AppSettings: ObservableObject {
         useFrontCamera = defaults.object(forKey: "useFrontCamera") as? Bool ?? true
         formFeedback = defaults.object(forKey: "formFeedback") as? Bool ?? true
         recordSets = defaults.object(forKey: "recordSets") as? Bool ?? true
+        voiceIdentifier = defaults.string(forKey: "voiceIdentifier") ?? ""
     }
 
     var hasClaude: Bool { !anthropicKey.trimmingCharacters(in: .whitespaces).isEmpty }

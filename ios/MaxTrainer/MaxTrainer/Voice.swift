@@ -12,7 +12,12 @@ final class Voice: NSObject, ObservableObject {
     private let synth = AVSpeechSynthesizer()
     private var continuations: [AVSpeechUtterance: CheckedContinuation<Void, Never>] = [:]
     private var active = 0
-    private lazy var chosenVoice: AVSpeechSynthesisVoice? = Voice.pickVoice()
+    /// The voice from Settings when one is chosen and still installed, otherwise the best installed one.
+    private var chosenVoice: AVSpeechSynthesisVoice? {
+        let id = AppSettings.shared.voiceIdentifier
+        if !id.isEmpty, let v = AVSpeechSynthesisVoice(identifier: id) { return v }
+        return Voice.pickVoice()
+    }
 
     override init() {
         super.init()
@@ -26,9 +31,10 @@ final class Voice: NSObject, ObservableObject {
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             let u = AVSpeechUtterance(string: trimmed)
             u.voice = chosenVoice
-            u.rate = 0.52
+            u.rate = 0.5
             u.pitchMultiplier = 1.0
             u.volume = 1.0
+            u.prefersAssistiveTechnologySettings = false
             continuations[u] = cont
             if active == 0 {
                 isSpeaking = true
@@ -64,17 +70,33 @@ final class Voice: NSObject, ObservableObject {
     static func pickVoice() -> AVSpeechSynthesisVoice? {
         let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "en-US" }
         let ranked = voices.sorted { a, b in
-            // Enhanced voices start speaking faster than premium ones, and sound nearly as good.
+            // Premium and enhanced voices sound natural; the built-in compact ones are the robotic ones.
             func score(_ v: AVSpeechSynthesisVoice) -> Int {
                 switch v.quality {
-                case .enhanced: return 3
-                case .premium: return 2
+                case .premium: return 3
+                case .enhanced: return 2
                 default: return 1
                 }
             }
             return score(a) > score(b)
         }
         return ranked.first ?? AVSpeechSynthesisVoice(language: "en-US")
+    }
+
+    /// English voices installed on this device, best first.
+    static func installedVoices() -> [AVSpeechSynthesisVoice] {
+        AVSpeechSynthesisVoice.speechVoices()
+            .filter { $0.language.hasPrefix("en") }
+            .sorted { a, b in
+                func q(_ v: AVSpeechSynthesisVoice) -> Int { v.quality == .premium ? 3 : v.quality == .enhanced ? 2 : 1 }
+                if q(a) != q(b) { return q(a) > q(b) }
+                if (a.language == "en-US") != (b.language == "en-US") { return a.language == "en-US" }
+                return a.name < b.name
+            }
+    }
+
+    static var hasNaturalVoice: Bool {
+        installedVoices().contains { $0.quality != .default }
     }
 }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct SettingsView: View {
     @ObservedObject var settings = AppSettings.shared
@@ -36,6 +37,15 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Max talks", isOn: $settings.voiceEnabled)
+                    NavigationLink {
+                        VoicePickerView()
+                    } label: {
+                        HStack {
+                            Text("Max's voice")
+                            Spacer()
+                            Text(currentVoiceName).foregroundStyle(.secondary)
+                        }
+                    }
                     Toggle("Front camera", isOn: $settings.useFrontCamera)
                     Toggle("Record each set to Photos", isOn: $settings.recordSets)
                 } header: {
@@ -65,6 +75,11 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
+    }
+
+    private var currentVoiceName: String {
+        if !settings.voiceIdentifier.isEmpty, let v = AVSpeechSynthesisVoice(identifier: settings.voiceIdentifier) { return v.name }
+        return "Automatic"
     }
 
     private func tip(_ phrase: String, _ what: String) -> some View {
