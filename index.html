@@ -28,6 +28,32 @@
     background: linear-gradient(135deg, #1a1d28 0%, #232838 100%); border: 1px solid var(--line);
   }
   header h1 { font-size: 26px; letter-spacing: -0.3px; }
+  header .last { margin-top: 10px; font-size: 14px; color: var(--text); }
+  header .last b { color: var(--accent); }
+  header .last .today { display: inline-block; margin-left: 8px; font-size: 12px; color: var(--muted); }
+
+  /* tabs */
+  .tabs { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; padding: 8px 0; margin-bottom: 14px; background: var(--bg); border-bottom: 1px solid var(--line2); }
+  .tab { flex: 1; text-align: center; background: var(--card); border: 1px solid var(--line); color: var(--muted); border-radius: 12px; padding: 11px 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab.on { background: var(--accent); border-color: var(--accent); color: #1a1200; }
+  .tab small { display: block; font-size: 11px; font-weight: 600; opacity: .75; margin-top: 2px; }
+  .page { display: none; }
+  .page.on { display: block; }
+  .filterlabel { font-size: 12px; color: var(--faint); font-weight: 600; margin-right: 2px; }
+  .filters .group { padding: 4px 0; }
+
+  /* edit mode */
+  #editbanner { display: none; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: #2b2410; border: 1px solid #5a4716; color: var(--text); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; }
+  body.admin #editbanner { display: flex; }
+  #editbanner .big { font-weight: 700; }
+  #editbanner .big span { color: var(--accent); }
+  body.admin table.sets tbody tr { cursor: pointer; }
+  body.admin table.sets tbody tr:hover td { background: #22273a; }
+  body.admin .day-head .meta { }
+  .howto { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .howto b { color: var(--text); }
+  .section-note { font-size: 12px; color: var(--faint); margin: -6px 0 10px; }
   header h1 span { color: var(--accent); }
   header p { color: var(--muted); margin-top: 4px; font-size: 14px; }
   header .updated { font-size: 12px; color: var(--faint); text-align: right; }
@@ -89,7 +115,7 @@
   .ex .row b { color: var(--text); font-weight: 600; }
   .ex .spark { margin-top: 8px; }
 
-  .day { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 14px; animation: fadeUp .3s ease both; }
+  .day { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 14px; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } }
   .day-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line2); }
   .day-head h2 { font-size: 18px; }
@@ -155,7 +181,9 @@
   .modal .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .modal .actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 16px; }
   .modal .actions > div { display: flex; gap: 8px; }
-  .modal .help { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .modal .help { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .modal ol { margin: 8px 0 0 18px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .modal ol b { color: var(--text); }
   .adminbadge { font-size: 11px; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
   .sr { position: absolute; left: -9999px; }
   @media (max-width: 520px) {
@@ -170,43 +198,54 @@
   <header>
     <div>
       <h1>💪 <span>MaxTrainer</span> Workout Log</h1>
-      <p>Every set, every rep — logged by Max from the phone on the floor.</p>
+      <p>Max writes every set here automatically from the phone on the floor.</p>
+      <div class="last" id="lastLine"></div>
     </div>
     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px">
-      <div class="updated" id="updated"></div>
-      <div style="display:flex; gap:6px">
-        <button class="btn sm adminonly" id="addSetBtn">+ Add set</button>
-        <button class="btn sm" id="adminBtn">Admin</button>
-      </div>
+      <button class="btn" id="adminBtn">✎ Edit log</button>
     </div>
   </header>
 
-  <div class="filters" id="filters"></div>
-  <div class="stats" id="stats"></div>
+  <nav class="tabs" aria-label="Sections">
+    <button class="tab on" data-tab="log">Log<small>every set, by day</small></button>
+    <button class="tab" data-tab="progress">Progress<small>totals, charts, trends</small></button>
+  </nav>
 
-  <div class="grid2">
-    <div class="panel">
-      <h2>Activity</h2>
-      <div class="hint" id="heatHint">Sets per day, last 16 weeks</div>
-      <div class="scrollx" id="heat"></div>
-      <div class="legend">less <i style="background:var(--heat0)"></i><i style="background:var(--heat1)"></i><i style="background:var(--heat2)"></i><i style="background:var(--heat3)"></i><i style="background:var(--heat4)"></i> more</div>
-    </div>
-    <div class="panel">
-      <h2>Weekly volume</h2>
-      <div class="hint" id="weekHint">Sets per week, last 12 weeks</div>
-      <div id="weeks"></div>
-    </div>
+  <div id="editbanner">
+    <div class="big"><span>Editing.</span> Click any set to change it, or add one.</div>
+    <div style="display:flex; gap:8px"><button class="btn sm primary" id="addSetBtn">+ Add set</button><button class="btn sm" id="doneBtn">Done</button></div>
   </div>
 
-  <h3 class="section" id="exTitle">Exercises</h3>
-  <div class="excards" id="excards"></div>
+  <section class="page on" id="page-log">
+    <div class="filters" id="filters"></div>
+    <div id="days"></div>
+    <div id="empty" style="display:none">
+      <div class="big">🏋️</div>
+      <p>No workouts logged yet.<br/>Open MaxTrainer, say an exercise, say “let's go” — the set shows up here.</p>
+    </div>
+  </section>
 
-  <h3 class="section">History</h3>
-  <div id="days"></div>
-  <div id="empty" style="display:none">
-    <div class="big">🏋️</div>
-    <p>No workouts logged yet.<br/>Finish a set with the MaxTrainer app and it'll show up here.</p>
-  </div>
+  <section class="page" id="page-progress">
+    <div class="filters" id="filters2"></div>
+    <div class="stats" id="stats"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>Activity</h2>
+        <div class="hint" id="heatHint">One square per day, last 16 weeks. Brighter = more sets.</div>
+        <div class="scrollx" id="heat"></div>
+        <div class="legend">less <i style="background:var(--heat0)"></i><i style="background:var(--heat1)"></i><i style="background:var(--heat2)"></i><i style="background:var(--heat3)"></i><i style="background:var(--heat4)"></i> more</div>
+      </div>
+      <div class="panel">
+        <h2>Sets per week</h2>
+        <div class="hint" id="weekHint">Last 12 weeks. Hover a bar for reps and time.</div>
+        <div id="weeks"></div>
+      </div>
+    </div>
+    <h3 class="section" id="exTitle">Exercises</h3>
+    <div class="section-note">Click an exercise to see only its sets in the Log.</div>
+    <div class="excards" id="excards"></div>
+  </section>
+
   <footer>Data: <a href="data/workouts.json">data/workouts.json</a> · App source on <a href="https://github.com/viraone/maxtrainer-log">GitHub</a></footer>
 </div>
 
@@ -214,8 +253,14 @@
 
 <div class="modal-bg" id="tokenModal">
   <div class="modal">
-    <h2>Admin access</h2>
-    <p class="help">Paste a GitHub fine-grained personal access token for <b>viraone/maxtrainer-log</b> with <b>Contents: read and write</b>. It stays in this browser only (localStorage) and is used to commit your edits to data/workouts.json. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create one</a>.</p>
+    <h2>Connect GitHub to edit</h2>
+    <p class="help">Edits are saved straight into the log file in your GitHub repo, so the page needs permission once. You only do this one time per browser.</p>
+    <ol>
+      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> on GitHub.</li>
+      <li>Repository access: <b>Only select repositories → viraone/maxtrainer-log</b>.</li>
+      <li>Permissions: <b>Contents → Read and write</b>. Generate it.</li>
+      <li>Paste it below. It is stored only in this browser.</li>
+    </ol>
     <label for="tokenInput">Token</label>
     <input id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_…" />
     <div class="actions"><div><button class="btn" id="tokenCancel">Cancel</button></div><div><button class="btn primary" id="tokenSave">Unlock</button></div></div>
@@ -332,11 +377,21 @@ function filtered(sets) {
 function render() {
   const sets = normalize(all);
   const last = sets[sets.length - 1];
-  $("#updated").innerHTML = last ? `Last set<br/><b>${esc(dateShort(last.date))} · ${esc(timeShort(last.date))}</b>` : "";
+  if (last) {
+    const key = dayKey(last.date);
+    const lastDay = sets.filter((x) => dayKey(x.date) === key);
+    const reps = lastDay.reduce((a, x) => a + (x.reps || 0), 0), secs = lastDay.reduce((a, x) => a + (x.duration_seconds || 0), 0);
+    const isToday = key === dayKey(new Date());
+    const bits = [`${lastDay.length} ${lastDay.length === 1 ? "set" : "sets"}`, reps ? `${reps} reps` : "", secs ? fmtTimeLong(secs) : ""].filter(Boolean).join(" · ");
+    $("#lastLine").innerHTML = `${isToday ? "Today" : "Last workout"}: <b>${esc(isToday ? timeShort(last.date) : dateShort(last.date))}</b> · ${bits}` +
+      (isToday ? "" : `<span class="today">Nothing logged yet today</span>`);
+  } else {
+    $("#lastLine").innerHTML = "";
+  }
 
   if (!sets.length) {
     $("#empty").style.display = "block";
-    ["#filters", "#stats", "#excards", "#days"].forEach((s) => ($(s).innerHTML = ""));
+    ["#filters", "#filters2", "#stats", "#excards", "#days"].forEach((s) => ($(s).innerHTML = ""));
     $("#heat").innerHTML = ""; $("#weeks").innerHTML = "";
     return;
   }
@@ -354,12 +409,14 @@ function render() {
 function renderFilters(sets) {
   const names = [...new Set(sets.map((s) => s.exercise))].sort();
   const chip = (label, on, attr) => `<button class="chip${on ? " on" : ""}" ${attr}>${esc(label)}</button>`;
-  $("#filters").innerHTML = `
-    <div class="group" aria-label="Exercise">${chip("All exercises", exerciseFilter === "All", 'data-ex="All"')}${names.map((n) => chip(n, exerciseFilter === n, `data-ex="${esc(n)}"`)).join("")}</div>
-    <div class="sep"></div>
-    <div class="group" aria-label="Time range">${[["4w", "4 weeks"], ["12w", "12 weeks"], ["all", "All time"]].map(([k, l]) => chip(l, rangeFilter === k, `data-range="${k}"`)).join("")}</div>`;
-  $("#filters").querySelectorAll("[data-ex]").forEach((b) => b.onclick = () => { exerciseFilter = b.dataset.ex; render(); });
-  $("#filters").querySelectorAll("[data-range]").forEach((b) => b.onclick = () => { rangeFilter = b.dataset.range; render(); });
+  const html = `
+    <div class="group" aria-label="Exercise"><span class="filterlabel">Show:</span>${chip(names.length > 1 ? "All exercises" : "All", exerciseFilter === "All", 'data-ex="All"')}${names.map((n) => chip(n, exerciseFilter === n, `data-ex="${esc(n)}"`)).join("")}</div>
+    <div class="group" aria-label="Time range"><span class="filterlabel">From:</span>${[["4w", "Last 4 weeks"], ["12w", "Last 12 weeks"], ["all", "All time"]].map(([k, l]) => chip(l, rangeFilter === k, `data-range="${k}"`)).join("")}</div>`;
+  for (const id of ["#filters", "#filters2"]) {
+    $(id).innerHTML = html;
+    $(id).querySelectorAll("[data-ex]").forEach((b) => b.onclick = () => { exerciseFilter = b.dataset.ex; render(); });
+    $(id).querySelectorAll("[data-range]").forEach((b) => b.onclick = () => { rangeFilter = b.dataset.range; render(); });
+  }
 }
 
 function renderStats(view, sets) {
@@ -373,13 +430,13 @@ function renderStats(view, sets) {
   const streak = weekStreak(sets);
   const tile = (num, label, sub = "") => `<div class="stat"><div class="num">${num}</div><div class="label">${label}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`;
   $("#stats").innerHTML =
-    tile(days.size, "Days trained") +
+    tile(days.size, days.size === 1 ? "Workout day" : "Workout days") +
     tile(view.length, "Sets") +
-    tile(reps.toLocaleString(), "Reps") +
-    tile(secs ? fmtTimeLong(secs) : "—", "Time under tension") +
-    tile(exercises, exercises === 1 ? "Exercise" : "Exercises") +
-    tile(thisWeek, "Sets this week", lastWeek ? `${lastWeek} last week` : "") +
-    tile(streak, streak === 1 ? "Week streak" : "Week streak", "weeks in a row with a set");
+    (reps ? tile(reps.toLocaleString(), "Reps") : "") +
+    (secs ? tile(fmtTimeLong(secs), "Time held", "timed sets added up") : "") +
+    (exercises > 1 ? tile(exercises, "Exercises") : "") +
+    tile(thisWeek, "Sets this week", lastWeek ? `${lastWeek} last week` : "nothing yet this week") +
+    (streak > 0 ? tile(streak, streak === 1 ? "Week in a row" : "Weeks in a row", "with at least one set") : "");
 }
 
 function weekStreak(sets) {
@@ -491,7 +548,8 @@ function renderExercises(sets) {
   $("#excards").querySelectorAll("[data-ex]").forEach((c) => c.onclick = (e) => {
     if (e.target.closest("[data-rename]")) return;
     exerciseFilter = exerciseFilter === c.dataset.ex ? "All" : c.dataset.ex; render();
-    $("#filters").scrollIntoView({ block: "nearest" });
+    showTab("log");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
   $("#excards").querySelectorAll("[data-rename]").forEach((b) => b.onclick = (e) => { e.stopPropagation(); openRename(b.dataset.rename); });
 }
@@ -539,7 +597,7 @@ function renderHistory(view) {
             ${s.cues && s.cues.length ? `<div class="k">Cues</div><ul>${s.cues.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
             ${s.improvements && s.improvements.length ? `<div class="k">Next time</div><ul>${s.improvements.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
           </details>` : "";
-        return `<tr>
+        return `<tr${admin ? ` data-row="${idx}" title="Click to edit"` : ""}>
           <td class="n">Set ${s.set_number ?? i + 1}</td>
           <td class="t">${esc(timeShort(s.date))}</td>
           <td class="a">${esc(amount(s))}</td>
@@ -557,6 +615,10 @@ function renderHistory(view) {
   }
   $("#days").innerHTML = html || `<div class="panel" style="color:var(--muted)">Nothing in this range.</div>`;
   $("#days").querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => openEditor(all[+b.dataset.edit]));
+  $("#days").querySelectorAll("[data-row]").forEach((tr) => tr.onclick = (e) => {
+    if (e.target.closest("button, summary, details, a")) return;
+    openEditor(all[+tr.dataset.row]);
+  });
   $("#days").querySelectorAll("[data-del]").forEach((b) => b.onclick = () => deleteSet(all[+b.dataset.del]));
   $("#days").querySelectorAll("[data-addday]").forEach((b) => b.onclick = () => openEditor(null, new Date(b.dataset.addday)));
 }
@@ -569,9 +631,21 @@ const token = () => localStorage.getItem(TOKEN_KEY) || "";
 function setAdmin(on) {
   admin = on;
   document.body.classList.toggle("admin", on);
-  $("#adminBtn").textContent = on ? "Done editing" : "Admin";
+  $("#adminBtn").textContent = on ? "Done" : "✎ Edit log";
+  $("#adminBtn").classList.toggle("primary", on);
+  if (on) showTab("log");
   render();
 }
+$("#doneBtn").onclick = () => setAdmin(false);
+
+// Tabs
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.dataset.tab === name));
+  document.querySelectorAll(".page").forEach((p) => p.classList.toggle("on", p.id === "page-" + name));
+  try { localStorage.setItem("maxtrainer_tab", name); } catch (e) {}
+}
+document.querySelectorAll(".tab").forEach((t) => t.onclick = () => showTab(t.dataset.tab));
+(() => { let t = "log"; try { t = localStorage.getItem("maxtrainer_tab") || "log"; } catch (e) {} if (location.hash === "#progress") t = "progress"; showTab(t); })();
 $("#adminBtn").onclick = () => {
   if (admin) { setAdmin(false); return; }
   if (token() || isDemo) { setAdmin(true); return; }
