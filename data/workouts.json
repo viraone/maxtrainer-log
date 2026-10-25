@@ -69,7 +69,12 @@
       ],
       "set_number" : 1,
       "summary" : "Planks: 30 seconds.",
-      "timestamp" : "2026-10-25T00:59:01Z"
+      "timestamp" : "2026-10-25T00:59:01Z",
+      "video" : {
+        "bytes" : 4403408,
+        "path" : "videos\/2026\/10\/25\/20261025T005901Z-planks-set1-ee0c68.mp4",
+        "repo" : "viraone\/maxtrainer-media"
+      }
     }
   ]
 }
