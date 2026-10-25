@@ -27,7 +27,7 @@ struct LogView: View {
                     Section {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting to upload").font(.subheadline.weight(.semibold))
-                            Text(err).font(.caption).foregroundStyle(.red)
+                            Text(store.clipErrorDetail ?? err).font(.caption).foregroundStyle(.red)
                             Button("Retry upload") { Task { await store.flush() } }
                                 .buttonStyle(.borderedProminent).disabled(store.isUploading)
                         }

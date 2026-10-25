@@ -10,6 +10,8 @@ final class WorkoutLogStore: ObservableObject {
     @Published var isUploading = false
     @Published var lastSyncError: String?
     @Published var lastClipError: String?
+    /// When the last clip upload failed, so a retry that fails again is visibly a new attempt.
+    @Published var lastClipAttempt: Date?
     @Published var lastSyncDate: Date?
 
     private let settings = AppSettings.shared
@@ -29,6 +31,13 @@ final class WorkoutLogStore: ObservableObject {
     var pending: [WorkoutSet] { sets.filter { !$0.synced } }
     /// Sets whose clip is recorded but not uploaded yet.
     var pendingClips: [WorkoutSet] { sets.filter { $0.video == nil && $0.clipFile != nil } }
+
+    /// Why the last clip upload failed and when it was tried. Shown on the main screen and in the Log.
+    var clipErrorDetail: String? {
+        guard let err = lastClipError else { return nil }
+        guard let at = lastClipAttempt else { return err }
+        return "\(err)\nLast tried \(at.formatted(date: .omitted, time: .standard))."
+    }
 
     func append(_ set: WorkoutSet) {
         sets.append(set)
@@ -111,6 +120,7 @@ final class WorkoutLogStore: ObservableObject {
                     lastClipError = nil
                 } catch {
                     lastClipError = error.localizedDescription
+                    lastClipAttempt = Date()
                     return                         // the same problem would hit the next clip; try again later
                 }
             }

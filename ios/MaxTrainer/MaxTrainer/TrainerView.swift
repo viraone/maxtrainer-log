@@ -258,11 +258,20 @@ struct TrainerView: View {
         } else if store.isUploading {
             Label("Uploading your set video…", systemImage: "arrow.up.circle").font(.caption).foregroundStyle(.secondary)
         } else if store.lastClipError != nil, !store.pendingClips.isEmpty {
-            Button { Task { await store.flush() } } label: {
-                Label("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting · tap to retry", systemImage: "film")
-                    .font(.caption).foregroundStyle(Color.accent)
+            VStack(spacing: 4) {
+                Button { Task { await store.flush() } } label: {
+                    Label("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting · tap to retry", systemImage: "film")
+                        .font(.caption).foregroundStyle(Color.accent)
+                }
+                .buttonStyle(.plain)
+                // The reason and the time of the last try, so a retry that fails again is never silent.
+                if let why = store.clipErrorDetail {
+                    Text(why)
+                        .font(.caption2).foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .buttonStyle(.plain)
         } else if pending > 0 {
             Button { Task { await store.sync() } } label: {
                 Label("\(pending) \(pending == 1 ? "set" : "sets") waiting to sync · tap to retry", systemImage: "icloud.slash")
