@@ -39,12 +39,26 @@ final class CameraService: NSObject, ObservableObject {
             await MainActor.run { unavailable = true }
             return
         }
-        await MainActor.run { isFront = front }
+        await MainActor.run { isFront = front; unavailable = false }
         queue.async { [self] in
             configure(front: front)
             if !session.isRunning { session.startRunning() }
             DispatchQueue.main.async { self.isRunning = self.session.isRunning }
         }
+    }
+
+    /// Asks for camera access without switching the camera on, so the first set does not stall on the system prompt.
+    func requestAccess() async {
+        if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            _ = await AVCaptureDevice.requestAccess(for: .video)
+        }
+    }
+
+    /// Chooses front or back for the next time the camera comes on (and switches it now if it is already on).
+    func setPreferredFront(_ front: Bool) {
+        guard isFront != front else { return }
+        isFront = front
+        if session.isRunning { queue.async { [self] in configure(front: front) } }
     }
 
     func flip() {
@@ -56,6 +70,7 @@ final class CameraService: NSObject, ObservableObject {
     func stop() {
         queue.async { [self] in
             if session.isRunning { session.stopRunning() }
+            lock.lock(); latest = nil; lock.unlock()          // never hand out a frame from an earlier set
             DispatchQueue.main.async { self.isRunning = false }
         }
     }

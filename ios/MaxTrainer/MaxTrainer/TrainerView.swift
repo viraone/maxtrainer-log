@@ -19,10 +19,6 @@ struct TrainerView: View {
             if engine.camera.unavailable || !engine.camera.isRunning {
                 LinearGradient(colors: [Color(red: 0.05, green: 0.06, blue: 0.08), Color(red: 0.11, green: 0.12, blue: 0.16)], startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
-                VStack(spacing: 8) {
-                    Image(systemName: "camera.fill").font(.system(size: 40)).foregroundStyle(.secondary)
-                    Text(engine.camera.unavailable ? "Camera unavailable" : "Starting camera…").foregroundStyle(.secondary)
-                }
             }
             LinearGradient(colors: [.black.opacity(0.55), .clear, .clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
@@ -31,6 +27,7 @@ struct TrainerView: View {
             VStack(spacing: 0) {
                 topBar
                 Spacer()
+                if showCameraNotice { cameraOffNotice }
                 centerPiece
                 Spacer()
                 bottomCard
@@ -46,6 +43,26 @@ struct TrainerView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await engine.store.flush() } }
         }
+    }
+
+    /// The camera is off most of the time, so say so where the picture would be. Not while a set is starting up.
+    private var showCameraNotice: Bool {
+        engine.camera.unavailable || (!engine.camera.isRunning && engine.phase != .countdown && engine.phase != .active)
+    }
+
+    private var cameraOffNotice: some View {
+        VStack(spacing: 8) {
+            Image(systemName: engine.camera.unavailable ? "camera.fill" : "video.slash.fill")
+                .font(.system(size: 40)).foregroundStyle(.secondary)
+            Text(engine.camera.unavailable ? "Camera unavailable" : "Camera is off")
+                .font(.headline).foregroundStyle(.secondary)
+            if !engine.camera.unavailable {
+                Text("It turns on when your set starts. Tap the camera button to check your framing.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).padding(.horizontal, 40)
+            }
+        }
+        .padding(.bottom, 12)
     }
 
     // MARK: - Top
@@ -230,8 +247,9 @@ struct TrainerView: View {
 
             HStack(spacing: 10) {
                 primaryButton
-                Button { engine.camera.flip() } label: { Image(systemName: "arrow.triangle.2.circlepath.camera") }
+                Button { engine.cameraButton() } label: { Image(systemName: engine.camera.isRunning ? "arrow.triangle.2.circlepath.camera" : "camera") }
                     .buttonStyle(.bordered)
+                    .accessibilityLabel(engine.camera.isRunning ? "Flip camera" : "Check camera framing")
                 Button {
                     showTyping.toggle()
                     typingFocused = showTyping

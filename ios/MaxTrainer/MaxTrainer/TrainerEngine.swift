@@ -39,6 +39,8 @@ final class TrainerEngine: ObservableObject {
     private var timerTask: Task<Void, Never>?
     private var awaitingRepCount = false
     private var midSetFrame: Data?
+    private var peekTask: Task<Void, Never>?
+    private var watchdogTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
     /// A line Max has spoken recently, used to reject his own voice coming back through the mic.
@@ -59,6 +61,7 @@ final class TrainerEngine: ObservableObject {
                       camera.objectWillChange.eraseToAnyPublisher(), store.objectWillChange.eraseToAnyPublisher()] {
             child.receive(on: DispatchQueue.main).sink { [weak self] _ in self?.objectWillChange.send() }.store(in: &cancellables)
         }
+        settings.$useFrontCamera.sink { [weak self] front in self?.camera.setPreferredFront(front) }.store(in: &cancellables)
     }
 
     // MARK: - Lifecycle
@@ -73,7 +76,9 @@ final class TrainerEngine: ObservableObject {
         voice.willSpeak = { [weak self] in self?.listener.suppress(true) }
         voice.didFinish = { [weak self] in self?.listener.suppress(false) }
 
-        await camera.start(front: settings.useFrontCamera)
+        // The camera stays off until a set starts. This only asks for permission, once, the first time.
+        await camera.requestAccess()
+        startCameraWatchdog()
         let ok = await listener.requestPermissions()
         if ok {
             // Hold the microphone through the greeting so nothing heard before Max
@@ -259,7 +264,7 @@ final class TrainerEngine: ObservableObject {
             switch phase {
             case .active, .countdown:
                 timerTask?.cancel()
-                camera.stopRecording(keep: false)
+                dropRecording()
                 phase = .ready
                 await say("Stopped. Tell me when to start recording you again, or what you want to do.")
             case .resting:
@@ -335,6 +340,46 @@ final class TrainerEngine: ObservableObject {
         }
     }
 
+    // MARK: - Camera
+
+    /// The camera is on only while a set is being recorded, and for a few seconds when the user taps it to check the framing.
+    private var needsCamera: Bool { settings.recordSets || (settings.hasClaude && settings.formFeedback) }
+
+    /// Throws away a recording in progress and switches the camera off.
+    private func dropRecording() {
+        peekTask?.cancel(); peekTask = nil
+        camera.stopRecording(keep: false)
+        camera.stop()
+    }
+
+    /// The camera button. With the camera off it shows the picture for a few seconds, to frame the shot. With it on it flips.
+    func cameraButton() {
+        let running = camera.isRunning
+        if running { camera.flip() }
+        peekTask?.cancel()
+        peekTask = Task { [weak self] in
+            guard let self else { return }
+            if !running { await self.camera.start(front: self.camera.isFront) }
+            try? await Task.sleep(for: .seconds(12))
+            if Task.isCancelled { return }
+            self.peekTask = nil
+            if self.phase != .countdown, self.phase != .active, !self.camera.isRecording { self.camera.stop() }
+        }
+    }
+
+    /// Safety net: if the camera is ever left running with no set going and nobody checking the framing, switch it off.
+    private func startCameraWatchdog() {
+        watchdogTask?.cancel()
+        watchdogTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(6))
+                guard let self else { return }
+                let idle = self.phase == .idle || self.phase == .ready || self.phase == .resting
+                if idle, self.camera.isRunning, !self.camera.isRecording, self.peekTask == nil, !self.awaitingRepCount { self.camera.stop() }
+            }
+        }
+    }
+
     // MARK: - Running a set
 
     private func runSet() async {
@@ -344,10 +389,21 @@ final class TrainerEngine: ObservableObject {
         midSetFrame = nil
         elapsed = 0
         if case .timed(let s) = p.mode { remaining = s }
-        if settings.recordSets, camera.isRunning, !camera.unavailable { camera.startRecording() }
+        // The camera comes on only now, while Max counts down, so nothing is shown or recorded before the user says go.
+        if needsCamera {
+            peekTask?.cancel(); peekTask = nil
+            let wantsClip = settings.recordSets
+            Task { [weak self] in
+                guard let self else { return }
+                await self.camera.start(front: self.camera.isFront)
+                var waited = 0
+                while !self.camera.isRunning, !self.camera.unavailable, waited < 30 { try? await Task.sleep(for: .milliseconds(50)); waited += 1 }
+                if wantsClip, self.camera.isRunning, self.phase == .countdown || self.phase == .active { self.camera.startRecording() }
+            }
+        }
         AudioServicesPlaySystemSound(1117)   // the "begin recording" tick: instant feedback before Max speaks
         await say("Recording. Set \(setNumber). Three, two, one, go!")
-        guard phase == .countdown else { camera.stopRecording(keep: false); return }
+        guard phase == .countdown else { dropRecording(); return }
         phase = .active
         switch p.mode {
         case .timed(let total):
@@ -412,7 +468,7 @@ final class TrainerEngine: ObservableObject {
             await say("Okay, stopping at \(done) seconds.")
             await logSet(reps: nil, seconds: done)
         } else {
-            camera.stopRecording(keep: false)
+            dropRecording()
             phase = .ready
             await say("Cancelled. Tell me when to start recording you.")
         }
@@ -443,6 +499,8 @@ final class TrainerEngine: ObservableObject {
             guard let self, let url else { return }
             Task { await self.clipFinished(url, for: setID) }
         }
+        peekTask?.cancel(); peekTask = nil
+        camera.stop()                      // the set is over: the camera goes off again until the next one
         sessionSets.append(set)
         phase = .ready
         if p.setsRemaining > 0 {
@@ -518,6 +576,7 @@ final class TrainerEngine: ObservableObject {
     }
 
     private func endSession() async {
+        dropRecording()                    // a set still being recorded is thrown away, and the camera goes off
         timerTask?.cancel()
         timerTask = nil
         routineIndex = nil

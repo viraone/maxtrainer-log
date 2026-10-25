@@ -26,6 +26,11 @@ A voice-run personal trainer for iPhone, focused on abs and a six-pack, plus the
 Timed sets get a "halfway", "ten seconds" and a five-to-one countdown. Each set is saved on the phone the
 moment it ends and pushed to GitHub right after (or later, if offline).
 
+**The camera stays off until a set starts.** It turns on while Max counts down after "let's go baby", records the set,
+and goes off again when the set is logged or stopped. The home screen shows no picture of you. Tap the camera button there
+for a few seconds of preview to frame the shot, and tap it again while the preview is on to flip front and back. The
+microphone still listens, because that is how Max hears "let's go baby".
+
 ## Setup
 
 1. Open `ios/MaxTrainer/MaxTrainer.xcodeproj` in Xcode (regenerate it with `xcodegen` from `ios/MaxTrainer`
