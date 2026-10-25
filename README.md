@@ -40,6 +40,31 @@ moment it ends and pushed to GitHub right after (or later, if offline).
 Speech recognition runs on-device when the iPhone supports it. Max pauses listening while he talks, so wait
 for him to finish before answering.
 
+## Set videos and the AI trainer
+
+Every recorded set is also uploaded as a small clip, and the dashboard can review your form from it.
+
+**What happens on the phone.** "Let's go baby" starts recording. When the set ends, the clip (540x960, about 1 Mbps, roughly
+3.5 MB per 30 seconds) is saved to Photos and uploaded to a **private** GitHub repository, `viraone/maxtrainer-media`, under
+`videos/YYYY/MM/DD/`. The set's entry in `data/workouts.json` gets a `video` field with the clip's path. If the phone is
+offline the clip waits on the phone and uploads later. Switch uploads off in Settings with "Upload each set's video to GitHub".
+
+**One-time token step.** Your fine-grained GitHub token must include both repositories, `maxtrainer-log` and
+`maxtrainer-media`, each with Contents: read and write. Edit an existing token in GitHub under Settings, Developer settings,
+Fine-grained tokens. Use the same token in the app and on the dashboard.
+
+**On the dashboard.** A set with a video shows "Watch & get AI feedback". The page downloads the clip with your token (it is
+private, so nobody else can play it), plays it, and the **Analyze my form** button picks 8 still frames, sends them to
+DeepSeek (`deepseek-flash`) and shows a score, what looked good, what to fix with a cue for each, and how form changed over
+the set. The feedback is saved into that set's `ai` field in the log, so it is there next time. Paste your DeepSeek API key
+into the dashboard once; it stays in that browser only. The review takes 20 to 30 seconds and costs a fraction of a cent.
+
+**Privacy notes.** Clips never touch the public repo. Pressing Analyze sends 8 stills of that clip to DeepSeek. Deleting a
+set in Edit mode also deletes its clip from the private repo once you save.
+
+**Data format additions** (`data/workouts.json`): `video: {path, bytes, repo}` and
+`ai: {score, headline, view, good[], fix[{area, issue, cue}], over_time, next_set, cannot_judge[], model, analyzed_at, frames}`.
+
 ## Data format
 
 `data/workouts.json` holds `{ "workouts": [ ... ] }`. Each entry has `exercise`, `timestamp` (ISO 8601, UTC),
