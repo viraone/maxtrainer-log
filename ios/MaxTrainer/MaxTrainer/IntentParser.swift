@@ -91,6 +91,10 @@ enum IntentParser {
         let nextPhrases = ["next", "skip", "next exercise", "next one", "next move", "skip it", "skip this", "skip this one", "move on", "next please"]
         if nextPhrases.contains(t) || t.hasPrefix("skip ") { return .next }
 
+        // Browse the library, or start a workout for a muscle group ("show me chest exercises", "back day", "start my workout")
+        if let b = browseIntent(t, words) { return b }
+        if let w = workoutIntent(t, words) { return w }
+
         // The default focus: abs. "abs", "six pack", "start the workout" run the guided circuit.
         let asking = ["how", "what", "why", "should", "can", "could", "is", "are", "does", "which", "when", "whats", "tell"].contains(words.first ?? "")
         let wantsCircuit = words.contains("abs")
@@ -196,6 +200,50 @@ enum IntentParser {
                               "lets try", "ready for", "switch to", "move to", "now do"]
     static func startsWithLeadIn(_ t: String) -> Bool {
         planLeadIns.contains { t.hasPrefix($0 + " ") }
+    }
+
+    // MARK: - Library and group workouts
+
+    static let listWords: Set<String> = ["exercise", "exercises", "moves", "workouts", "options", "ideas", "library", "list"]
+    static let browseLeads: Set<String> = ["show", "give", "list", "see", "open", "what", "which", "any", "tell", "find", "need", "browse", "more", "other", "different", "i"]
+    static let workoutExtras: Set<String> = ["day", "routine", "session", "training", "train", "circuit", "hit", "hitting", "work", "working", "blast", "focus"]
+
+    /// "Show me chest exercises", "what back exercises do you have", "browse", "exercise library", or just "chest".
+    static func browseIntent(_ t: String, _ words: [String]) -> Intent? {
+        if words.contains(where: { ["this", "that", "it", "current", "next"].contains($0) }) { return nil }
+        let group = Muscles.named(in: words)
+        let phrases = ["exercise library", "all exercises", "all the exercises", "more exercises", "other exercises", "different exercises", "list of exercises"]
+        if words.first == "browse" || phrases.contains(where: { t.contains($0) }) { return .browse(group?.id) }
+
+        // A bare muscle name ("chest", "the triceps") means "let me look", unless it asks to start something.
+        // Abs keeps starting the circuit.
+        let bare = words.filter { !fillers.contains($0) }
+        if bare.count == 1, let g = group, g.id != "abs", g.words.contains(bare[0]), !asksToStart(t) { return .browse(g.id) }
+
+        guard words.contains(where: { listWords.contains($0) }) else { return nil }
+        let first = words.first ?? ""
+        let startsLikeAsk = browseLeads.contains(first)
+        let rest = words.filter { !fillers.contains($0) && !listWords.contains($0) && !(group?.words.contains($0) ?? false) && $0 != "for" && $0 != "me" }
+        if group == nil, ["what", "which", "any", "tell"].contains(first),
+           !["have", "there", "available", "options", "other", "more", "different"].contains(where: { t.contains($0) }) { return nil }
+        if startsLikeAsk || (group != nil && rest.isEmpty) { return .browse(group?.id) }
+        return nil
+    }
+
+    /// True when the sentence asks to begin something ("start the chest workout", "back day", "let's do legs").
+    static func asksToStart(_ t: String) -> Bool {
+        t.contains("workout") || t.contains("day") || t.contains("routine") || t.contains("session") || t.contains("train")
+            || t.contains("hit ") || startsWithLeadIn(t)
+    }
+
+    /// "Start the chest workout", "back day", "let's do legs", "train arms", "start my workout".
+    static func workoutIntent(_ t: String, _ words: [String]) -> Intent? {
+        if t.contains("my workout") || t.contains("my moves") || t.contains("my routine") || t.contains("my exercises") { return .startMine }
+        guard let group = Muscles.named(in: words) else { return nil }
+        let rest = words.filter { !fillers.contains($0) && !group.words.contains($0) }
+        guard rest.allSatisfy({ workoutExtras.contains($0) }) else { return nil }
+        guard asksToStart(t) else { return nil }
+        return group.id == "abs" ? .startRoutine : .startGroup(group.id)
     }
 
     // MARK: - Pieces

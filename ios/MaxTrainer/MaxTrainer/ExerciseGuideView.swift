@@ -3,7 +3,10 @@ import SwiftUI
 /// "How do I do this?" — a guide sheet for one move, with a Start button.
 struct ExerciseGuideView: View {
     let guide: ExerciseGuide
+    /// Called when Start is tapped, so a screen that opened this one (the library) can close too.
+    var onStart: (() -> Void)? = nil
     @EnvironmentObject var engine: TrainerEngine
+    @ObservedObject private var mine = MyMoves.shared
     @Environment(\.dismiss) private var dismiss
     @State private var showDemo = false
 
@@ -23,6 +26,8 @@ struct ExerciseGuideView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(guide.name).font(.title.weight(.heavy))
                             Text(guide.muscles).font(.subheadline).foregroundStyle(.secondary)
+                            Text("\(Muscles.title(guide.group)) · \(guide.equipmentTitle)")
+                                .font(.caption.weight(.bold)).foregroundStyle(Color.accent)
                         }
                     }
 
@@ -66,6 +71,7 @@ struct ExerciseGuideView: View {
                     VStack(spacing: 10) {
                         Button {
                             dismiss()
+                            onStart?()
                             Task { await engine.choose(guide.name, mode: guide.defaultMode) }
                         } label: {
                             Text("Start · 3 sets of \(guide.defaultLabel)")
@@ -97,7 +103,21 @@ struct ExerciseGuideView: View {
             }
             .navigationTitle("How to")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { mine.toggle(guide.name) } label: {
+                        Image(systemName: mine.contains(guide.name) ? "star.fill" : "star")
+                            .foregroundStyle(mine.contains(guide.name) ? Color.accent : Color.secondary)
+                    }
+                    .accessibilityLabel(mine.contains(guide.name) ? "Remove from your moves" : "Add to your moves")
+                }
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            }
+        }
+        .alert("Your moves are full", isPresented: $mine.fullNotice) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("You can star up to \(MyMoves.limit) moves. Unstar one to make room.")
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)

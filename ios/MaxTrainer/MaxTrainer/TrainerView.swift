@@ -4,6 +4,7 @@ import AVFoundation
 struct TrainerView: View {
     @EnvironmentObject var engine: TrainerEngine
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var myMoves = MyMoves.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var showSettings = false
     @State private var showLog = false
@@ -37,6 +38,7 @@ struct TrainerView: View {
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLog) { LogView().environmentObject(engine) }
         .sheet(item: $guide) { g in ExerciseGuideView(guide: g).environmentObject(engine) }
+        .sheet(item: $engine.showLibrary) { req in ExerciseLibraryView(request: req).environmentObject(engine) }
         .onChange(of: engine.showGuide) { _, g in
             if let g { guide = g; engine.showGuide = nil }
         }
@@ -63,6 +65,19 @@ struct TrainerView: View {
             }
         }
         .padding(.bottom, 12)
+    }
+
+    /// A tappable capsule with a move's name and amount.
+    private func pill(_ label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Text(label).font(.footnote.weight(.semibold))
+                Image(systemName: "questionmark.circle").font(.caption2).foregroundStyle(Color.accent)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(Capsule().fill(Color.white.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Top
@@ -175,25 +190,36 @@ struct TrainerView: View {
                     Text(setsLabel(plan)).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
                 }
             } else {
-                Text("SIX-PACK FOCUS").font(.caption.weight(.black)).tracking(1.6).foregroundStyle(Color.accent)
-                Text("Build your abs").font(.title2.weight(.heavy))
-                Text("Say “let's do planks”, then “let's go baby” when you're in position. Or say “start the ab workout” for the full circuit. Tap a move to see how it's done.")
+                // The user decides what the home screen shows: the six-pack picks until they star their own moves.
+                let mine = myMoves.guides
+                HStack(alignment: .firstTextBaseline) {
+                    Text(mine.isEmpty ? "SIX-PACK FOCUS" : "YOUR MOVES").font(.caption.weight(.black)).tracking(1.6).foregroundStyle(Color.accent)
+                    Spacer()
+                    Button { engine.showLibrary = LibraryRequest() } label: {
+                        Label("Browse all", systemImage: "square.grid.2x2")
+                            .font(.caption.weight(.bold))
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Capsule().fill(Color.white.opacity(0.12)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Browse all exercises")
+                }
+                Text(mine.isEmpty ? "Build your abs" : "Ready when you are").font(.title2.weight(.heavy))
+                Text(mine.isEmpty
+                     ? "Say “let's do planks”, then “let's go baby” when you're in position. Or say “start the ab workout” for the full circuit. Tap a move to see how it's done."
+                     : "Tap a move to see how it's done, or say its name. Say “start my workout” to run them in order.")
                     .font(.footnote).foregroundStyle(.secondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(AbsProgram.quickPicks, id: \.name) { pick in
-                            Button {
-                                if let g = ExerciseGuides.find(pick.name) { guide = g }
-                                else { Task { await engine.choose(pick.name, mode: pick.mode) } }
-                            } label: {
-                                HStack(spacing: 5) {
-                                    Text(pick.label).font(.footnote.weight(.semibold))
-                                    Image(systemName: "questionmark.circle").font(.caption2).foregroundStyle(Color.accent)
+                        if mine.isEmpty {
+                            ForEach(AbsProgram.quickPicks, id: \.name) { pick in
+                                pill(pick.label) {
+                                    if let g = ExerciseGuides.find(pick.name) { guide = g }
+                                    else { Task { await engine.choose(pick.name, mode: pick.mode) } }
                                 }
-                                .padding(.horizontal, 12).padding(.vertical, 8)
-                                .background(Capsule().fill(Color.white.opacity(0.12)))
                             }
-                            .buttonStyle(.plain)
+                        } else {
+                            ForEach(mine) { g in pill(g.pillLabel) { guide = g } }
                         }
                     }
                 }
@@ -320,8 +346,10 @@ struct TrainerView: View {
         case .idle:
             if engine.plan != nil {
                 bigButton("LET'S GO BABY", color: Color.accent) { Task { await engine.handle("let's go") } }
-            } else {
+            } else if myMoves.names.isEmpty {
                 bigButton("START AB WORKOUT", color: Color.accent) { Task { await engine.handle("start the ab workout") } }
+            } else {
+                bigButton("START MY WORKOUT", color: Color.accent) { Task { await engine.handle("start my workout") } }
             }
         }
     }
@@ -337,7 +365,7 @@ struct TrainerView: View {
     private func setsLabel(_ plan: ExercisePlan) -> String {
         let total = plan.setsDone + plan.setsRemaining
         let base = (total <= 1 && plan.setsDone == 0) ? "Set 1" : "Set \(min(plan.setsDone + 1, max(total, 1))) of \(max(total, 1))"
-        if let i = engine.routineIndex { return "Move \(i + 1)/\(AbsProgram.steps.count) · " + base }
+        if let i = engine.routineIndex { return "Move \(i + 1)/\(engine.routineSteps.count) · " + base }
         return base
     }
 

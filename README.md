@@ -22,6 +22,10 @@ A voice-run personal trainer for iPhone, focused on abs and a six-pack, plus the
 | "Stop" | Cancels the running timer. |
 | "Rest a minute" | Starts a rest timer. |
 | "That's it for today" | Wraps up and pushes the log to the dashboard. |
+| "Show me chest exercises" (or back, shoulders, arms, legs) | Opens the exercise library at that muscle. "Browse" opens all of it. |
+| "Start the chest workout" (or "back day", "leg day") | Runs that muscle's five top picks, three sets each, and moves on by itself. |
+| "Start my workout" | Runs the moves you starred, in order. |
+| "Let's do incline dumbbell press" | Any move in the library works by its name or an everyday nickname ("bench press", "rdl"). |
 
 Timed sets get a "halfway", "ten seconds" and a five-to-one countdown. Each set is saved on the phone the
 moment it ends and pushed to GitHub right after (or later, if offline).
@@ -30,6 +34,31 @@ moment it ends and pushed to GitHub right after (or later, if offline).
 and goes off again when the set is logged or stopped. The home screen shows no picture of you. Tap the camera button there
 for a few seconds of preview to frame the shot, and tap it again while the preview is on to flip front and back. The
 microphone still listens, because that is how Max hears "let's go baby".
+
+## The exercise library
+
+The app carries 277 exercises in 13 muscle groups: chest, shoulders, back, triceps, biceps, forearms, traps, abs and core,
+quads, hamstrings, glutes, calves and cardio. Every one has a how-to that Max can read out loud: the set-up, the steps,
+three cues and the common mistakes, plus a link to a demo video.
+
+The home screen stays light. It shows the six-pack picks and a small **Browse all** button. You decide the rest:
+
+- **Browse** opens the library: a search box, a tile for each muscle, and inside a muscle its top picks first, with
+  filters for equipment (bodyweight, dumbbell, barbell, cable, machine, kettlebell, band).
+- **Star a move** (the star in any list or how-to) to put it on your home screen. As soon as you have starred one,
+  your moves replace the six-pack picks and the big button becomes **Start my workout**. You can star up to 12, and
+  **Clear** in the library brings the six-pack picks back.
+- **Start the chest workout**, a button inside each muscle or a voice command, runs that muscle's five top picks as a
+  guided workout.
+
+A move is saved under the library's name, so "bench press" and "Barbell Bench Press" are one exercise on the dashboard.
+
+**Adding or changing an exercise.** The library is one file, `ios/MaxTrainer/MaxTrainer/exercises.json`, an array of
+objects with `name`, `aliases` (what people say), `group`, `also` (other muscles), `equipment`, `mode` (`reps` or `timed`),
+`amount` (default reps or seconds), `muscles`, `setup`, `steps`, `cues`, `mistakes` and `featured`. No code change is
+needed. Keep the text plain, with letters, digits and basic punctuation only, because Max reads it aloud. A name or
+nickname must not point at two different moves. The first moves listed for a group that are marked `featured` are its
+top picks and its workout.
 
 ## Setup
 

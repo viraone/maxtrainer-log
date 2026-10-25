@@ -33,7 +33,7 @@ struct ClaudeService {
     static let intentSchema: [String: Any] = [
         "type": "object",
         "properties": [
-            "action": ["type": "string", "enum": ["plan", "go", "done", "more_sets", "stop", "rest", "end_session", "set_time", "start_routine", "next", "explain", "chat", "unknown"]],
+            "action": ["type": "string", "enum": ["plan", "go", "done", "more_sets", "stop", "rest", "end_session", "set_time", "start_routine", "next", "explain", "browse", "start_workout", "chat", "unknown"]],
             "exercise": ["anyOf": [["type": "string"], ["type": "null"]]],
             "reps": ["anyOf": [["type": "integer"], ["type": "null"]]],
             "seconds": ["anyOf": [["type": "integer"], ["type": "null"]]],
@@ -64,6 +64,10 @@ struct ClaudeService {
         - end_session: finished for today.
         - start_routine: the user wants the guided ab workout ("start the ab workout", "abs", "six-pack workout", "let's do the circuit").
         - next: skip to the next exercise of the guided workout ("next", "skip this one").
+        - browse: the user wants to look through exercises ("show me chest exercises", "what back moves do you have", "browse exercises"). \
+        Put the muscle group in exercise (chest, shoulders, back, triceps, biceps, forearms, traps, abs, quads, hamstrings, glutes, calves, cardio, legs, arms), or null for the whole library.
+        - start_workout: the user wants a guided workout for a muscle group ("start the chest workout", "back day", "let's do legs") or their own starred moves ("start my workout"). \
+        Put the group in exercise, or "my" for their own moves. Abs and the six-pack circuit are start_routine instead.
         - explain: the user asks how to do a move or what it is ("how do I do bicycle crunches", "show me a dead bug",         "what's a hollow hold", "how do I do this one"). Put the move's name in exercise, or null for the current one.         The app has its own written and spoken guide, so leave reply null.
         - set_time: change the current timed set to `seconds`.
         - chat: a question or remark that deserves a spoken answer. Put the answer in reply: at most two sentences, \
@@ -95,6 +99,15 @@ struct ClaudeService {
         case "start_routine": return .startRoutine
         case "next": return .next
         case "explain": return .explain(exercise)
+        case "browse":
+            let g = exercise.flatMap { Muscles.named(in: IntentParser.normalize($0).split(separator: " ").map(String.init))?.id }
+            return .browse(g)
+        case "start_workout":
+            if let e = exercise?.lowercased(), e == "my" || e.hasPrefix("my ") { return .startMine }
+            if let e = exercise, let g = Muscles.named(in: IntentParser.normalize(e).split(separator: " ").map(String.init)) {
+                return g.id == "abs" ? .startRoutine : .startGroup(g.id)
+            }
+            return .unknown
         case "set_time": return seconds.map { .setTime(seconds: $0) } ?? .unknown
         case "chat": return .reply(reply ?? "")
         default: return .unknown

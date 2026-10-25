@@ -29,6 +29,10 @@ final class TrainerEngine: ObservableObject {
     @Published var routineIndex: Int?
     /// A guide the view should present ("how do I do this?").
     @Published var showGuide: ExerciseGuide?
+    /// Asks the screen to open the exercise library.
+    @Published var showLibrary: LibraryRequest?
+    /// The moves of the guided workout in progress: the six-pack circuit unless another one was started.
+    @Published private(set) var routineSteps: [ExercisePlan] = AbsProgram.steps
 
     let settings = AppSettings.shared
     let listener = SpeechListener()
@@ -75,6 +79,9 @@ final class TrainerEngine: ObservableObject {
         listener.onUtterance = { [weak self] text in Task { await self?.handle(text, fromMic: true) } }
         voice.willSpeak = { [weak self] in self?.listener.suppress(true) }
         voice.didFinish = { [weak self] in self?.listener.suppress(false) }
+        #if DEBUG
+        applyDebugLaunch()
+        #endif
 
         // The camera stays off until a set starts. This only asks for permission, once, the first time.
         await camera.requestAccess()
@@ -183,11 +190,13 @@ final class TrainerEngine: ObservableObject {
             }
             timerTask?.cancel()
             awaitingRepCount = false
-            let name = exercise.map(IntentParser.titleCase) ?? plan?.name
-            guard let name else {
+            let heardName = exercise.map(IntentParser.titleCase) ?? plan?.name
+            guard let heardName else {
                 await say("Tap a move, or tell me its name and the amount.")
                 return
             }
+            // A nickname is logged under the library's name, so "bench press" and "Barbell Bench Press" are one move on the dashboard.
+            let name = ExerciseGuides.exactMatch(heardName)?.name ?? heardName
             let sameExercise = plan?.name.lowercased() == name.lowercased()
             if !sameExercise { routineIndex = nil }
             let mode: SetMode
@@ -296,17 +305,36 @@ final class TrainerEngine: ObservableObject {
             await say(text.isEmpty ? "I didn't catch that." : text)
 
         case .startRoutine:
+            await beginRoutine(AbsProgram.steps, title: "Full circuit")
+
+        case .startMine:
+            let steps = MyMoves.shared.guides.map { $0.plan() }
+            guard !steps.isEmpty else {
+                showLibrary = LibraryRequest()
+                await say("You haven't picked any moves yet. Browse the exercises and star the ones you want.")
+                return
+            }
+            await beginRoutine(steps, title: "Your workout")
+
+        case .startGroup(let id):
+            let steps = ExerciseLibrary.shared.workout(for: id)
+            guard !steps.isEmpty else {
+                await say("I don't have moves for that yet.")
+                return
+            }
+            await beginRoutine(steps, title: "\(Muscles.title(id)) workout")
+
+        case .browse(let id):
             guard phase != .active, phase != .countdown else {
                 await say("Finish this set first. Tell me if you want to bail.")
                 return
             }
-            timerTask?.cancel()
-            awaitingRepCount = false
-            routineIndex = 0
-            let first = AbsProgram.steps[0]
-            plan = first
-            phase = .ready
-            await say("Got it. Full circuit, \(AbsProgram.steps.count) moves, three sets each. First up: \(first.spoken). Tell me when to start recording you.")
+            showLibrary = LibraryRequest(group: id)
+            if let id {
+                await say("Here are the \(Muscles.title(id).lowercased()) moves. Tap one for the how-to, or tell me which.")
+            } else {
+                await say("Here are all the muscle groups. Tap one, or tell me a move.")
+            }
 
         case .next:
             guard phase != .active, phase != .countdown else {
@@ -339,6 +367,41 @@ final class TrainerEngine: ObservableObject {
             if raw.split(separator: " ").count >= 3 { await say("I didn't catch that.") }
         }
     }
+
+    /// Starts a guided workout: the moves in order, three sets each, moving on by itself.
+    private func beginRoutine(_ steps: [ExercisePlan], title: String) async {
+        guard phase != .active, phase != .countdown else {
+            await say("Finish this set first. Tell me if you want to bail.")
+            return
+        }
+        guard let first = steps.first else { return }
+        timerTask?.cancel()
+        awaitingRepCount = false
+        routineSteps = steps
+        routineIndex = 0
+        plan = first
+        phase = .ready
+        await say("Got it. \(title), \(steps.count) \(steps.count == 1 ? "move" : "moves"), three sets each. First up: \(first.spoken). Tell me when to start recording you.")
+    }
+
+    #if DEBUG
+    /// Test hook, harmless without the settings: `defaults write com.viraone.maxtrainer debugScreen library:chest` opens that screen at launch.
+    private func applyDebugLaunch() {
+        let d = UserDefaults.standard
+        if let pins = d.string(forKey: "debugPins") {
+            MyMoves.shared.clear()
+            MyMoves.shared.add(pins.split(separator: ",").map { String($0) })
+        }
+        guard let spec = d.string(forKey: "debugScreen") else { return }
+        let parts = spec.split(separator: ":", maxSplits: 1).map(String.init)
+        switch parts[0] {
+        case "library": showLibrary = LibraryRequest(group: parts.count > 1 ? parts[1] : nil)
+        case "search": showLibrary = LibraryRequest(query: parts.count > 1 ? parts[1] : nil)
+        case "guide": if parts.count > 1 { showGuide = ExerciseGuides.find(parts[1]) }
+        default: break
+        }
+    }
+    #endif
 
     // MARK: - Camera
 
@@ -634,9 +697,9 @@ final class TrainerEngine: ObservableObject {
         }
         let finished = plan?.name ?? "that one"
         let next = i + 1
-        if next < AbsProgram.steps.count {
+        if next < routineSteps.count {
             routineIndex = next
-            let step = AbsProgram.steps[next]
+            let step = routineSteps[next]
             plan = step
             phase = .ready
             let lead = skipped ? "Skipping \(finished)." : "\(finished) done."

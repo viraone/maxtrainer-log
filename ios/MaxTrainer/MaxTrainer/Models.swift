@@ -123,7 +123,20 @@ enum Intent: Equatable {
     case next
     /// "How do I do bicycle crunches?" — show and read the guide (nil = the current move).
     case explain(String?)
+    /// "Show me chest exercises": open the library, at a muscle group when one was named.
+    case browse(String?)
+    /// "Start the chest workout": run a guided workout of that group's go-to moves.
+    case startGroup(String)
+    /// "Start my workout": run the moves the user has starred, in order.
+    case startMine
     case unknown
+}
+
+/// Asks the screen to open the exercise library, at a muscle group and/or with a search typed in.
+struct LibraryRequest: Identifiable, Equatable {
+    let id = UUID()
+    var group: String?
+    var query: String?
 }
 
 struct FormFeedback: Codable, Equatable {
