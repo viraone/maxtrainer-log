@@ -60,6 +60,13 @@ needed. Keep the text plain, with letters, digits and basic punctuation only, be
 nickname must not point at two different moves. The first moves listed for a group that are marked `featured` are its
 top picks and its workout.
 
+## Look and feel
+
+The app and the dashboard share one look. The logo is the gradient "MaxTrainer" wordmark (also the launch screen), headings,
+labels and big numbers are set in Space Grotesk, and reading text is set in Inter. Both fonts are bundled in
+`ios/MaxTrainer/MaxTrainer/Fonts` and are free to use under the SIL Open Font License; the license texts sit next to them. If a
+font file were ever missing, the app falls back to the system font. The type helpers and the wordmark live in `Theme.swift`.
+
 ## Setup
 
 1. Open `ios/MaxTrainer/MaxTrainer.xcodeproj` in Xcode (regenerate it with `xcodegen` from `ios/MaxTrainer`

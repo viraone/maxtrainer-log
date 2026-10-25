@@ -13,9 +13,9 @@ struct LogView: View {
                     Section {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("\(store.pending.count) set\(store.pending.count == 1 ? "" : "s") waiting to sync").font(.subheadline.weight(.semibold))
-                                if let err = store.lastSyncError { Text(err).font(.caption).foregroundStyle(.red) }
-                                else if !AppSettings.shared.hasGitHub { Text("Add a GitHub token in Settings").font(.caption).foregroundStyle(.secondary) }
+                                Text("\(store.pending.count) set\(store.pending.count == 1 ? "" : "s") waiting to sync").font(.brand(.subheadline, .semibold))
+                                if let err = store.lastSyncError { Text(err).font(.brand(.caption)).foregroundStyle(.red) }
+                                else if !AppSettings.shared.hasGitHub { Text("Add a GitHub token in Settings").font(.brand(.caption)).foregroundStyle(.secondary) }
                             }
                             Spacer()
                             Button(store.isSyncing ? "Syncing…" : "Sync now") { Task { await store.sync() } }
@@ -26,8 +26,8 @@ struct LogView: View {
                 if let err = store.lastClipError {
                     Section {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting to upload").font(.subheadline.weight(.semibold))
-                            Text(store.clipErrorDetail ?? err).font(.caption).foregroundStyle(.red)
+                            Text("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting to upload").font(.brand(.subheadline, .semibold))
+                            Text(store.clipErrorDetail ?? err).font(.brand(.caption)).foregroundStyle(.red)
                             Button("Retry upload") { Task { await store.flush() } }
                                 .buttonStyle(.borderedProminent).disabled(store.isUploading)
                         }
@@ -38,9 +38,9 @@ struct LogView: View {
                         ForEach(group.sets) { set in
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
-                                    Text(set.exercise).font(.body.weight(.semibold))
+                                    Text(set.exercise).font(.brand(.body, .semibold))
                                     Spacer()
-                                    Text(set.amountLabel).foregroundStyle(Color.accent).fontWeight(.semibold)
+                                    Text(set.amountLabel).foregroundStyle(Color.accent).font(.brand(.body, .semibold))
                                     Image(systemName: set.synced ? "checkmark.icloud.fill" : "icloud.slash")
                                         .foregroundStyle(set.synced ? .green : .secondary).font(.caption)
                                     if set.video != nil {
@@ -50,12 +50,12 @@ struct LogView: View {
                                     }
                                 }
                                 if let s = set.summary, !s.isEmpty, !s.hasPrefix(set.exercise + ":") {
-                                    Text(s).font(.caption).foregroundStyle(.secondary)
+                                    Text(s).font(.brand(.caption)).foregroundStyle(.secondary)
                                 }
                                 if let tip = set.improvements.first {
-                                    Text("🔧 " + tip).font(.caption).foregroundStyle(.secondary)
+                                    Text("🔧 " + tip).font(.brand(.caption)).foregroundStyle(.secondary)
                                 }
-                                Text(timeLabel(set.timestamp)).font(.caption2).foregroundStyle(.tertiary)
+                                Text(timeLabel(set.timestamp)).font(.brand(.caption2)).foregroundStyle(.tertiary)
                             }
                         }
                     }

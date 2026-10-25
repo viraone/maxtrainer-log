@@ -35,6 +35,15 @@ struct TrainerView: View {
             }
         }
         .task { await engine.start() }
+        #if DEBUG
+        .onAppear {   // test hook: `defaults write com.viraone.maxtrainer debugScreen settings` (or log) opens that screen at launch
+            switch UserDefaults.standard.string(forKey: "debugScreen") {
+            case "settings": showSettings = true
+            case "log": showLog = true
+            default: break
+            }
+        }
+        #endif
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLog) { LogView().environmentObject(engine) }
         .sheet(item: $guide) { g in ExerciseGuideView(guide: g).environmentObject(engine) }
@@ -57,10 +66,10 @@ struct TrainerView: View {
             Image(systemName: engine.camera.unavailable ? "camera.fill" : "video.slash.fill")
                 .font(.system(size: 40)).foregroundStyle(.secondary)
             Text(engine.camera.unavailable ? "Camera unavailable" : "Camera is off")
-                .font(.headline).foregroundStyle(.secondary)
+                .font(.brand(.headline)).foregroundStyle(.secondary)
             if !engine.camera.unavailable {
                 Text("It turns on when your set starts. Tap the camera button to check your framing.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.brand(.footnote)).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center).padding(.horizontal, 40)
             }
         }
@@ -71,7 +80,7 @@ struct TrainerView: View {
     private func pill(_ label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 5) {
-                Text(label).font(.footnote.weight(.semibold))
+                Text(label).font(.brand(.footnote, .semibold))
                 Image(systemName: "questionmark.circle").font(.caption2).foregroundStyle(Color.accent)
             }
             .padding(.horizontal, 12).padding(.vertical, 8)
@@ -84,17 +93,13 @@ struct TrainerView: View {
 
     private var topBar: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 6) {
-                Text("MAX").font(.system(size: 20, weight: .black, design: .rounded)).foregroundStyle(Color.accent)
-                Text("TRAINER").font(.system(size: 20, weight: .black, design: .rounded)).foregroundStyle(.white)
-            }
-            .fixedSize()
-            .layoutPriority(2)
+            Wordmark(size: 25)
+                .layoutPriority(2)
             Spacer(minLength: 6)
             if engine.camera.isRecording {
                 HStack(spacing: 5) {
                     Circle().fill(.red).frame(width: 8, height: 8)
-                    Text("REC").font(.caption.weight(.black))
+                    Text("REC").font(.brand(.caption, .black))
                 }
                 .padding(.horizontal, 9).padding(.vertical, 6)
                 .background(.red.opacity(0.22), in: Capsule())
@@ -111,7 +116,7 @@ struct TrainerView: View {
     private var statusPill: some View {
         HStack(spacing: 6) {
             Circle().fill(statusColor).frame(width: 8, height: 8)
-            Text(engine.statusText).font(.caption.weight(.semibold)).lineLimit(1)
+            Text(engine.statusText).font(.brand(.caption, .semibold)).lineLimit(1)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(.ultraThinMaterial, in: Capsule())
@@ -138,8 +143,8 @@ struct TrainerView: View {
                 bigClock(engine.remaining, label: plan.name.uppercased())
             } else {
                 VStack(spacing: 6) {
-                    Text(clock(engine.elapsed)).font(.system(size: 64, weight: .bold, design: .rounded)).monospacedDigit()
-                    Text("Say “done” or “I did 12”").font(.headline).foregroundStyle(.white.opacity(0.85))
+                    Text(clock(engine.elapsed)).font(.brand(size: 64, .bold)).monospacedDigit()
+                    Text("Say “done” or “I did 12”").font(.brand(.headline)).foregroundStyle(.white.opacity(0.85))
                 }
                 .foregroundStyle(.white)
                 .shadow(radius: 8)
@@ -147,7 +152,7 @@ struct TrainerView: View {
         case .resting:
             bigClock(engine.remaining, label: "REST")
         case .countdown:
-            Text("GET READY").font(.system(size: 44, weight: .black, design: .rounded)).foregroundStyle(Color.accent).shadow(radius: 8)
+            Text("GET READY").font(.brand(size: 44, .bold)).foregroundStyle(Color.accent).shadow(radius: 8)
         default:
             EmptyView()
         }
@@ -155,9 +160,9 @@ struct TrainerView: View {
 
     private func bigClock(_ seconds: Int, label: String) -> some View {
         VStack(spacing: 4) {
-            Text(label).font(.headline.weight(.bold)).foregroundStyle(.white.opacity(0.85)).tracking(2)
+            Text(label).font(.brand(.headline, .bold)).foregroundStyle(.white.opacity(0.85)).tracking(2)
             Text(clock(seconds))
-                .font(.system(size: 120, weight: .black, design: .rounded))
+                .font(.brand(size: 120, .bold))
                 .monospacedDigit()
                 .foregroundStyle(seconds <= 5 && seconds > 0 ? Color.accent : .white)
                 .contentTransition(.numericText())
@@ -176,7 +181,7 @@ struct TrainerView: View {
         VStack(alignment: .leading, spacing: 10) {
             if let plan = engine.plan {
                 HStack {
-                    Text(plan.name).font(.title3.weight(.bold))
+                    Text(plan.name).font(.brand(.title3, .bold))
                     if let g = ExerciseGuides.find(plan.name) {
                         Button { guide = g } label: {
                             Image(systemName: "questionmark.circle.fill").font(.body).foregroundStyle(Color.accent)
@@ -185,30 +190,30 @@ struct TrainerView: View {
                         .accessibilityLabel("How to do \(plan.name)")
                     }
                     Text("·").foregroundStyle(.secondary)
-                    Text(plan.shortLabel).font(.title3.weight(.semibold)).foregroundStyle(Color.accent)
+                    Text(plan.shortLabel).font(.brand(.title3, .semibold)).foregroundStyle(Color.accent)
                     Spacer()
-                    Text(setsLabel(plan)).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                    Text(setsLabel(plan)).font(.brand(.subheadline, .semibold)).foregroundStyle(.secondary)
                 }
             } else {
                 // The user decides what the home screen shows: the six-pack picks until they star their own moves.
                 let mine = myMoves.guides
                 HStack(alignment: .firstTextBaseline) {
-                    Text(mine.isEmpty ? "SIX-PACK FOCUS" : "YOUR MOVES").font(.caption.weight(.black)).tracking(1.6).foregroundStyle(Color.accent)
+                    Text(mine.isEmpty ? "SIX-PACK FOCUS" : "YOUR MOVES").font(.brand(.caption, .black)).tracking(1.6).foregroundStyle(Color.accent)
                     Spacer()
                     Button { engine.showLibrary = LibraryRequest() } label: {
                         Label("Browse all", systemImage: "square.grid.2x2")
-                            .font(.caption.weight(.bold))
+                            .font(.brand(.caption, .bold))
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(Capsule().fill(Color.white.opacity(0.12)))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Browse all exercises")
                 }
-                Text(mine.isEmpty ? "Build your abs" : "Ready when you are").font(.title2.weight(.heavy))
+                Text(mine.isEmpty ? "Build your abs" : "Ready when you are").font(.brand(.title2, .heavy))
                 Text(mine.isEmpty
                      ? "Say “let's do planks”, then “let's go baby” when you're in position. Or say “start the ab workout” for the full circuit. Tap a move to see how it's done."
                      : "Tap a move to see how it's done, or say its name. Say “start my workout” to run them in order.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.brand(.footnote)).foregroundStyle(.secondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         if mine.isEmpty {
@@ -227,15 +232,15 @@ struct TrainerView: View {
 
             if !engine.maxLine.isEmpty {
                 HStack(alignment: .top, spacing: 8) {
-                    Text("MAX").font(.caption.weight(.black)).foregroundStyle(Color.accent).padding(.top, 2)
-                    Text(engine.maxLine).font(.body)
+                    Text("MAX").font(.brand(.caption, .black)).foregroundStyle(Color.accent).padding(.top, 2)
+                    Text(engine.maxLine).font(.brand(.body))
                 }
             }
             let live = engine.listener.liveText
             if !live.isEmpty || !engine.heard.isEmpty {
                 HStack(alignment: .top, spacing: 8) {
-                    Text("YOU").font(.caption.weight(.black)).foregroundStyle(.secondary).padding(.top, 2)
-                    Text(live.isEmpty ? engine.heard : live).font(.body).foregroundStyle(live.isEmpty ? .secondary : .primary).lineLimit(2)
+                    Text("YOU").font(.brand(.caption, .black)).foregroundStyle(.secondary).padding(.top, 2)
+                    Text(live.isEmpty ? engine.heard : live).font(.brand(.body)).foregroundStyle(live.isEmpty ? .secondary : .primary).lineLimit(2)
                 }
             }
 
@@ -256,11 +261,11 @@ struct TrainerView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "icloud.slash").font(.title3)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Sets stay on this phone").font(.subheadline.weight(.bold))
-                            Text("Add your GitHub token and every set lands on your dashboard the moment it ends.").font(.caption)
+                            Text("Sets stay on this phone").font(.brand(.subheadline, .bold))
+                            Text("Add your GitHub token and every set lands on your dashboard the moment it ends.").font(.brand(.caption))
                         }
                         Spacer()
-                        Text("Add").font(.subheadline.weight(.bold))
+                        Text("Add").font(.brand(.subheadline, .bold))
                     }
                     .padding(12)
                     .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.accent.opacity(0.18)))
@@ -283,7 +288,7 @@ struct TrainerView: View {
                     .buttonStyle(.bordered)
             }
             if let problem = engine.lastProblem ?? engine.store.lastSyncError ?? engine.listener.lastError {
-                Text(problem).font(.caption2).foregroundStyle(.red).lineLimit(2)
+                Text(problem).font(.brand(.caption2)).foregroundStyle(.red).lineLimit(2)
             }
         }
         .padding(16)
@@ -298,20 +303,20 @@ struct TrainerView: View {
         let store = engine.store
         let pending = store.pending.count
         if store.isSyncing {
-            Label("Logging to your dashboard…", systemImage: "arrow.triangle.2.circlepath").font(.caption).foregroundStyle(.secondary)
+            Label("Logging to your dashboard…", systemImage: "arrow.triangle.2.circlepath").font(.brand(.caption)).foregroundStyle(.secondary)
         } else if store.isUploading {
-            Label("Uploading your set video…", systemImage: "arrow.up.circle").font(.caption).foregroundStyle(.secondary)
+            Label("Uploading your set video…", systemImage: "arrow.up.circle").font(.brand(.caption)).foregroundStyle(.secondary)
         } else if store.lastClipError != nil, !store.pendingClips.isEmpty {
             VStack(spacing: 4) {
                 Button { Task { await store.flush() } } label: {
                     Label("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting · tap to retry", systemImage: "film")
-                        .font(.caption).foregroundStyle(Color.accent)
+                        .font(.brand(.caption)).foregroundStyle(Color.accent)
                 }
                 .buttonStyle(.plain)
                 // The reason and the time of the last try, so a retry that fails again is never silent.
                 if let why = store.clipErrorDetail {
                     Text(why)
-                        .font(.caption2).foregroundStyle(.red)
+                        .font(.brand(.caption2)).foregroundStyle(.red)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -319,14 +324,14 @@ struct TrainerView: View {
         } else if pending > 0 {
             Button { Task { await store.sync() } } label: {
                 Label("\(pending) \(pending == 1 ? "set" : "sets") waiting to sync · tap to retry", systemImage: "icloud.slash")
-                    .font(.caption).foregroundStyle(Color.accent)
+                    .font(.brand(.caption)).foregroundStyle(Color.accent)
             }
             .buttonStyle(.plain)
         } else if let d = store.lastSyncDate {
             Label("On your dashboard · \(d.formatted(date: .omitted, time: .shortened))", systemImage: "checkmark.icloud.fill")
-                .font(.caption).foregroundStyle(.green)
+                .font(.brand(.caption)).foregroundStyle(.green)
         } else if !engine.sessionSets.isEmpty {
-            Label("On your dashboard", systemImage: "checkmark.icloud.fill").font(.caption).foregroundStyle(.green)
+            Label("On your dashboard", systemImage: "checkmark.icloud.fill").font(.brand(.caption)).foregroundStyle(.green)
         }
     }
 
@@ -356,7 +361,7 @@ struct TrainerView: View {
 
     private func bigButton(_ title: String, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title).font(.headline.weight(.black)).frame(maxWidth: .infinity).padding(.vertical, 6)
+            Text(title).font(.brand(.headline, .black)).frame(maxWidth: .infinity).padding(.vertical, 6)
         }
         .buttonStyle(.borderedProminent)
         .tint(color)

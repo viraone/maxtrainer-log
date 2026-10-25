@@ -71,7 +71,7 @@ struct SettingsView: View {
                         tip("Rest a minute", "Starts a rest timer.")
                         tip("That's it for today", "Wraps up and pushes the log.")
                     }
-                    .font(.footnote)
+                    .font(.brand(.footnote))
                 }
             }
             .navigationTitle("Settings")
@@ -86,7 +86,7 @@ struct SettingsView: View {
 
     private func tip(_ phrase: String, _ what: String) -> some View {
         HStack(alignment: .top, spacing: 8) {
-            Text("“\(phrase)”").fontWeight(.semibold).frame(width: 150, alignment: .leading)
+            Text("“\(phrase)”").font(.brand(.footnote, .semibold)).frame(width: 150, alignment: .leading)
             Text(what).foregroundStyle(.secondary)
         }
     }

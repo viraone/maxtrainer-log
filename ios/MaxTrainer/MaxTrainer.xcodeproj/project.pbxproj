@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		00F1101D191FA7301C8144F2 /* Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7875333D262F52DEFEE00E /* Voice.swift */; };
+		0985F49C59655A4AF82558F9 /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F3C23B41632D04EAF0EA33CE /* SpaceGrotesk-Bold.ttf */; };
+		0B90A67A12CA300CD7F5DD85 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0A869A7F5BB458495C253386 /* Inter-Medium.ttf */; };
+		0E275D5BF49C0314CA27993F /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 209759598D0E9558946700D7 /* Inter-Regular.ttf */; };
 		0F7146E323B59BA35C390AB3 /* TrainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA7BA4615BC2E2681CA27FE /* TrainerView.swift */; };
 		12C42A09129F886E92D9182C /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697176F7D626A2DE8F6E508D /* ClaudeService.swift */; };
 		1376D77849B176CE183DAC94 /* ExerciseGuides.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D9A7F2ED851ED059B09E33 /* ExerciseGuides.swift */; };
@@ -16,13 +19,19 @@
 		2986ED391ED49ACC265DD62D /* MyMoves.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B7270EEE4B934C32C41028 /* MyMoves.swift */; };
 		322BF5D335BD100D24299F65 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 10A4813CF0FE2E7CD9AF7726 /* Assets.xcassets */; };
 		3D545A795C1682252CBF428B /* GitHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C547524936A505CAD488AF6 /* GitHubService.swift */; };
+		4DB1895ED001C8CAE1A9F0F2 /* OFL-Inter.txt in Resources */ = {isa = PBXBuildFile; fileRef = ED1CC744CCA35CCFE13CD364 /* OFL-Inter.txt */; };
 		4FB33347730B871BFDAF5C1D /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F51ABB3E533ABD0A5340D6 /* Settings.swift */; };
 		55CD489708752FAA76DFC664 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70E5825DCF7BCD61E4C0B607 /* Models.swift */; };
+		59C4A566F718F71D8B2193CB /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EEBF00E71743B392669B0F13 /* Inter-SemiBold.ttf */; };
+		5AB6E633B4BE7B17D6D10D5F /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4412BD724C953777D9BF5ACE /* Inter-Bold.ttf */; };
+		64A3649372D760A24518EC9C /* SpaceGrotesk-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1F98F296463790A321307E38 /* SpaceGrotesk-SemiBold.ttf */; };
+		6EF54ECE48EBCB2738A0C2F0 /* OFL-SpaceGrotesk.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4C316A49585FAC826F4A4608 /* OFL-SpaceGrotesk.txt */; };
 		709C2DC94D9EC0B83433F10B /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65614AC1DB3049E30231029E /* LogView.swift */; };
 		7301B2BE1F046794C6F36B46 /* exercises.json in Resources */ = {isa = PBXBuildFile; fileRef = 35E5886D6DA66F742418E113 /* exercises.json */; };
 		80326C81C9F3BA52FE72A375 /* IntentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 093D169D9622FD5B04F33A5D /* IntentParser.swift */; };
 		81A732E55011E5B2FEF5CE2C /* VoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5BD2DAE6E481618E65AF69 /* VoicePickerView.swift */; };
 		8DF2B488800B26E7AB46ED2D /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42074F62E6DDA5779F9F402C /* CameraService.swift */; };
+		9054281D09F80155B8E7C61B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3031FF468D3B1BA2698B7CEA /* Theme.swift */; };
 		A30870593520438579E8260E /* ExerciseLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DC2A2022CCAC0DBB3B95B5 /* ExerciseLibrary.swift */; };
 		B696DE4F8199F29AE05EAB89 /* TrainerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65276C4347A17327023364B /* TrainerEngine.swift */; };
 		BC675137B23BDEB9AB95D244 /* MediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966EE43FE9D10C961898CA4B /* MediaService.swift */; };
@@ -33,19 +42,26 @@
 		E417CEDEBEF36B558E16A42E /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42E55E4CFC83A6AF2C5DB0F /* SafariView.swift */; };
 		E4A62C175C336B3A742EAF39 /* MaxTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3CD8B18DF4347D5E21531C1 /* MaxTrainerApp.swift */; };
 		EA44BD56B29555F9622F549D /* ClipStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E84A05D010FBFC7EE113776F /* ClipStorage.swift */; };
+		FBC4BB160783A31D89B73699 /* SpaceGrotesk-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EC9A03697581174D90B2B1CA /* SpaceGrotesk-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		093D169D9622FD5B04F33A5D /* IntentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentParser.swift; sourceTree = "<group>"; };
+		0A869A7F5BB458495C253386 /* Inter-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Medium.ttf"; sourceTree = "<group>"; };
 		10A4813CF0FE2E7CD9AF7726 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10DC2A2022CCAC0DBB3B95B5 /* ExerciseLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseLibrary.swift; sourceTree = "<group>"; };
 		116FDF639779C0D15B927280 /* ClipWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipWriter.swift; sourceTree = "<group>"; };
 		18D9A7F2ED851ED059B09E33 /* ExerciseGuides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseGuides.swift; sourceTree = "<group>"; };
+		1F98F296463790A321307E38 /* SpaceGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
+		209759598D0E9558946700D7 /* Inter-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Regular.ttf"; sourceTree = "<group>"; };
 		28ABA6140FF2BABB538A74F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2C547524936A505CAD488AF6 /* GitHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubService.swift; sourceTree = "<group>"; };
+		3031FF468D3B1BA2698B7CEA /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		35E5886D6DA66F742418E113 /* exercises.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = exercises.json; sourceTree = "<group>"; };
 		397F2AFD5D39FEC532E2B2D4 /* ExerciseLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseLibraryView.swift; sourceTree = "<group>"; };
 		42074F62E6DDA5779F9F402C /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		4412BD724C953777D9BF5ACE /* Inter-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Bold.ttf"; sourceTree = "<group>"; };
+		4C316A49585FAC826F4A4608 /* OFL-SpaceGrotesk.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-SpaceGrotesk.txt"; sourceTree = "<group>"; };
 		5403EF6DB163F035346FE0F7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		5A0067937ED0F89EB06D614E /* WorkoutLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLogStore.swift; sourceTree = "<group>"; };
 		65614AC1DB3049E30231029E /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
@@ -61,12 +77,32 @@
 		E84A05D010FBFC7EE113776F /* ClipStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStorage.swift; sourceTree = "<group>"; };
 		E8B7270EEE4B934C32C41028 /* MyMoves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyMoves.swift; sourceTree = "<group>"; };
 		EC404E46A09B219AA6C927A1 /* SpeechListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechListener.swift; sourceTree = "<group>"; };
+		EC9A03697581174D90B2B1CA /* SpaceGrotesk-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Medium.ttf"; sourceTree = "<group>"; };
+		ED1CC744CCA35CCFE13CD364 /* OFL-Inter.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-Inter.txt"; sourceTree = "<group>"; };
 		ED4DA480E5C82330FE7A2DC5 /* ExerciseGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseGuideView.swift; sourceTree = "<group>"; };
+		EEBF00E71743B392669B0F13 /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-SemiBold.ttf"; sourceTree = "<group>"; };
+		F3C23B41632D04EAF0EA33CE /* SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Bold.ttf"; sourceTree = "<group>"; };
 		F3F51ABB3E533ABD0A5340D6 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		FAA7BA4615BC2E2681CA27FE /* TrainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		4E5540D85D8AD54699E288D5 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				4412BD724C953777D9BF5ACE /* Inter-Bold.ttf */,
+				0A869A7F5BB458495C253386 /* Inter-Medium.ttf */,
+				209759598D0E9558946700D7 /* Inter-Regular.ttf */,
+				EEBF00E71743B392669B0F13 /* Inter-SemiBold.ttf */,
+				ED1CC744CCA35CCFE13CD364 /* OFL-Inter.txt */,
+				4C316A49585FAC826F4A4608 /* OFL-SpaceGrotesk.txt */,
+				F3C23B41632D04EAF0EA33CE /* SpaceGrotesk-Bold.ttf */,
+				EC9A03697581174D90B2B1CA /* SpaceGrotesk-Medium.ttf */,
+				1F98F296463790A321307E38 /* SpaceGrotesk-SemiBold.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		516F4E76985DEF2423D6C28E = {
 			isa = PBXGroup;
 			children = (
@@ -100,11 +136,13 @@
 				F3F51ABB3E533ABD0A5340D6 /* Settings.swift */,
 				5403EF6DB163F035346FE0F7 /* SettingsView.swift */,
 				EC404E46A09B219AA6C927A1 /* SpeechListener.swift */,
+				3031FF468D3B1BA2698B7CEA /* Theme.swift */,
 				C65276C4347A17327023364B /* TrainerEngine.swift */,
 				FAA7BA4615BC2E2681CA27FE /* TrainerView.swift */,
 				AD7875333D262F52DEFEE00E /* Voice.swift */,
 				8C5BD2DAE6E481618E65AF69 /* VoicePickerView.swift */,
 				5A0067937ED0F89EB06D614E /* WorkoutLogStore.swift */,
+				4E5540D85D8AD54699E288D5 /* Fonts */,
 			);
 			path = MaxTrainer;
 			sourceTree = "<group>";
@@ -178,6 +216,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				322BF5D335BD100D24299F65 /* Assets.xcassets in Resources */,
+				5AB6E633B4BE7B17D6D10D5F /* Inter-Bold.ttf in Resources */,
+				0B90A67A12CA300CD7F5DD85 /* Inter-Medium.ttf in Resources */,
+				0E275D5BF49C0314CA27993F /* Inter-Regular.ttf in Resources */,
+				59C4A566F718F71D8B2193CB /* Inter-SemiBold.ttf in Resources */,
+				4DB1895ED001C8CAE1A9F0F2 /* OFL-Inter.txt in Resources */,
+				6EF54ECE48EBCB2738A0C2F0 /* OFL-SpaceGrotesk.txt in Resources */,
+				0985F49C59655A4AF82558F9 /* SpaceGrotesk-Bold.ttf in Resources */,
+				FBC4BB160783A31D89B73699 /* SpaceGrotesk-Medium.ttf in Resources */,
+				64A3649372D760A24518EC9C /* SpaceGrotesk-SemiBold.ttf in Resources */,
 				7301B2BE1F046794C6F36B46 /* exercises.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -208,6 +255,7 @@
 				4FB33347730B871BFDAF5C1D /* Settings.swift in Sources */,
 				CF5036C41869BCA04B0E8C18 /* SettingsView.swift in Sources */,
 				D4875441AB97CD61C2FB4D76 /* SpeechListener.swift in Sources */,
+				9054281D09F80155B8E7C61B /* Theme.swift in Sources */,
 				B696DE4F8199F29AE05EAB89 /* TrainerEngine.swift in Sources */,
 				0F7146E323B59BA35C390AB3 /* TrainerView.swift in Sources */,
 				00F1101D191FA7301C8144F2 /* Voice.swift in Sources */,

@@ -20,7 +20,17 @@ targets:
         CFBundleDisplayName: MaxTrainer
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
+        UIAppFonts:
+          - SpaceGrotesk-Medium.ttf
+          - SpaceGrotesk-SemiBold.ttf
+          - SpaceGrotesk-Bold.ttf
+          - Inter-Regular.ttf
+          - Inter-Medium.ttf
+          - Inter-SemiBold.ttf
+          - Inter-Bold.ttf
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true
         NSCameraUsageDescription: Max watches your form through the camera while you work out.

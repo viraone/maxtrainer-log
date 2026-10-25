@@ -17,9 +17,9 @@ struct VoicePickerView: View {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Only basic voices are installed", systemImage: "exclamationmark.triangle.fill")
-                            .font(.subheadline.weight(.bold)).foregroundStyle(Color.accent)
+                            .font(.brand(.subheadline, .bold)).foregroundStyle(Color.accent)
                         Text("These are the robotic ones. Apple's natural voices are a free download, about 100 MB each:")
-                            .font(.footnote)
+                            .font(.brand(.footnote))
                         VStack(alignment: .leading, spacing: 4) {
                             step(1, "Open the iPhone **Settings** app")
                             step(2, "**Accessibility** → **Read & Speak** (called **Spoken Content** on older iOS) → **Voices**")
@@ -27,8 +27,8 @@ struct VoicePickerView: View {
                             step(4, "Good picks: **Evan**, **Nathan**, **Tom** (Enhanced) or **Ava**, **Zoe** (Premium)")
                             step(5, "Come back here and choose it")
                         }
-                        .font(.footnote)
-                        Text("Voices marked Premium sound the most human.").font(.caption).foregroundStyle(.secondary)
+                        .font(.brand(.footnote))
+                        Text("Voices marked Premium sound the most human.").font(.brand(.caption)).foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
                 }
@@ -69,16 +69,16 @@ struct VoicePickerView: View {
             .buttonStyle(.plain)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(name).font(.body.weight(.semibold))
+                    Text(name).font(.brand(.body, .semibold))
                     if let quality {
                         Text(quality == .premium ? "PREMIUM" : quality == .enhanced ? "ENHANCED" : "BASIC")
-                            .font(.caption2.weight(.black)).tracking(0.8)
+                            .font(.brand(.caption2, .black)).tracking(0.8)
                             .padding(.horizontal, 6).padding(.vertical, 2)
                             .background(Capsule().fill(quality == .default ? Color.gray.opacity(0.3) : Color.accent.opacity(0.25)))
                             .foregroundStyle(quality == .default ? .secondary : Color.accent)
                     }
                 }
-                Text(detail).font(.caption).foregroundStyle(.secondary)
+                Text(detail).font(.brand(.caption)).foregroundStyle(.secondary)
             }
             Spacer()
             if settings.voiceIdentifier == id {

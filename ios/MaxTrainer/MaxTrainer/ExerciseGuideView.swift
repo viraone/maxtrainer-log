@@ -24,10 +24,10 @@ struct ExerciseGuideView: View {
                                 .foregroundStyle(Color.accent)
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(guide.name).font(.title.weight(.heavy))
-                            Text(guide.muscles).font(.subheadline).foregroundStyle(.secondary)
+                            Text(guide.name).font(.brand(.title, .heavy))
+                            Text(guide.muscles).font(.brand(.subheadline)).foregroundStyle(.secondary)
                             Text("\(Muscles.title(guide.group)) · \(guide.equipmentTitle)")
-                                .font(.caption.weight(.bold)).foregroundStyle(Color.accent)
+                                .font(.brand(.caption, .bold)).foregroundStyle(Color.accent)
                         }
                     }
 
@@ -39,7 +39,7 @@ struct ExerciseGuideView: View {
                             ForEach(Array(guide.steps.enumerated()), id: \.offset) { i, step in
                                 HStack(alignment: .top, spacing: 10) {
                                     Text("\(i + 1)")
-                                        .font(.caption.weight(.black))
+                                        .font(.brand(.caption, .black))
                                         .frame(width: 22, height: 22)
                                         .background(Circle().fill(Color.accent))
                                         .foregroundStyle(.black)
@@ -75,7 +75,7 @@ struct ExerciseGuideView: View {
                             Task { await engine.choose(guide.name, mode: guide.defaultMode) }
                         } label: {
                             Text("Start · 3 sets of \(guide.defaultLabel)")
-                                .font(.headline.weight(.black)).frame(maxWidth: .infinity).padding(.vertical, 6)
+                                .font(.brand(.headline, .black)).frame(maxWidth: .infinity).padding(.vertical, 6)
                         }
                         .buttonStyle(.borderedProminent).tint(Color.accent)
 
@@ -84,18 +84,18 @@ struct ExerciseGuideView: View {
                                 Task { await engine.say(guide.spoken) }
                             } label: {
                                 Label("Hear it from Max", systemImage: "speaker.wave.2.fill")
-                                    .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
+                                    .font(.brand(.subheadline, .semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
                             }
                             .buttonStyle(.bordered)
 
                             Button { showDemo = true } label: {
                                 Label("Watch a demo", systemImage: "play.rectangle.fill")
-                                    .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
+                                    .font(.brand(.subheadline, .semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
                             }
                             .buttonStyle(.bordered)
                         }
                         Text("Demo videos open right here, inside the app.")
-                            .font(.caption2).foregroundStyle(.tertiary)
+                            .font(.brand(.caption2)).foregroundStyle(.tertiary)
                     }
                     .padding(.top, 6)
                 }
@@ -128,8 +128,8 @@ struct ExerciseGuideView: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title.uppercased()).font(.caption.weight(.black)).tracking(1.4).foregroundStyle(Color.accent)
-            content().font(.body)
+            Text(title.uppercased()).font(.brand(.caption, .black)).tracking(1.4).foregroundStyle(Color.accent)
+            content().font(.brand(.body))
         }
     }
 }

@@ -64,7 +64,7 @@ struct ExerciseLibraryView: View {
                     }
                 }
                 Text("Star a move to put it on your home screen. You can also say a muscle, like “show me back exercises”.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.brand(.footnote)).foregroundStyle(.secondary)
             }
             .padding(.horizontal, 16).padding(.bottom, 24)
         }
@@ -75,8 +75,8 @@ struct ExerciseLibraryView: View {
             Image(systemName: g.symbol).font(.system(size: 26, weight: .semibold)).foregroundStyle(Color.accent)
             Spacer(minLength: 0)
             VStack(alignment: .leading, spacing: 2) {
-                Text(g.title).font(.headline.weight(.bold))
-                Text("\(library.count(in: g.id)) exercises").font(.caption).foregroundStyle(.secondary)
+                Text(g.title).font(.brand(.headline, .bold))
+                Text("\(library.count(in: g.id)) exercises").font(.brand(.caption)).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 104, alignment: .leading)
@@ -88,9 +88,9 @@ struct ExerciseLibraryView: View {
     private var yourMoves: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("YOUR MOVES").font(.caption.weight(.black)).tracking(1.4).foregroundStyle(Color.accent)
+                Text("YOUR MOVES").font(.brand(.caption, .black)).tracking(1.4).foregroundStyle(Color.accent)
                 Spacer()
-                Button("Clear") { mine.clear() }.font(.caption.weight(.semibold))
+                Button("Clear") { mine.clear() }.font(.brand(.caption, .semibold))
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -98,7 +98,7 @@ struct ExerciseLibraryView: View {
                         Button { guide = g } label: {
                             HStack(spacing: 5) {
                                 Image(systemName: "star.fill").font(.caption2).foregroundStyle(Color.accent)
-                                Text(g.name).font(.footnote.weight(.semibold))
+                                Text(g.name).font(.brand(.footnote, .semibold))
                             }
                             .padding(.horizontal, 12).padding(.vertical, 8)
                             .background(Capsule().fill(Color.white.opacity(0.12)))
@@ -108,7 +108,7 @@ struct ExerciseLibraryView: View {
                 }
             }
             Text("These are on your home screen. “Start my workout” runs them in order.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.brand(.caption)).foregroundStyle(.secondary)
         }
     }
 
@@ -143,7 +143,7 @@ struct GroupExercisesView: View {
                 if workoutSize > 0 && groupID != "abs" {
                     Button(action: onWorkout) {
                         Label("Start the \(Muscles.title(groupID).lowercased()) workout · \(workoutSize) moves", systemImage: "play.fill")
-                            .font(.subheadline.weight(.bold)).frame(maxWidth: .infinity).padding(.vertical, 6)
+                            .font(.brand(.subheadline, .bold)).frame(maxWidth: .infinity).padding(.vertical, 6)
                     }
                     .buttonStyle(.borderedProminent).tint(Color.accent).foregroundStyle(.black)
                     .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)).listRowBackground(Color.clear)
@@ -160,10 +160,10 @@ struct GroupExercisesView: View {
             }
             let top = shown.filter(\.featured), more = shown.filter { !$0.featured }
             if !top.isEmpty {
-                Section("Top picks") { ForEach(top) { ExerciseRow(guide: $0, onOpen: onOpen) } }
+                Section { ForEach(top) { ExerciseRow(guide: $0, onOpen: onOpen) } } header: { sectionTitle("Top picks") }
             }
             if !more.isEmpty {
-                Section(top.isEmpty ? "All exercises" : "More") { ForEach(more) { ExerciseRow(guide: $0, onOpen: onOpen) } }
+                Section { ForEach(more) { ExerciseRow(guide: $0, onOpen: onOpen) } } header: { sectionTitle(top.isEmpty ? "All exercises" : "More") }
             }
         }
         .navigationTitle(Muscles.title(groupID))
@@ -179,9 +179,14 @@ struct GroupExercisesView: View {
         }
     }
 
+    /// A list section title in the dashboard's small-caps label style.
+    private func sectionTitle(_ title: String) -> some View {
+        Text(title.uppercased()).font(.brand(.caption, .bold)).tracking(1.4).foregroundStyle(.secondary)
+    }
+
     private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title).font(.footnote.weight(.semibold))
+            Text(title).font(.brand(.footnote, .semibold))
                 .padding(.horizontal, 12).padding(.vertical, 7)
                 .background(Capsule().fill(selected ? Color.accent : Color.white.opacity(0.12)))
                 .foregroundStyle(selected ? Color.black : Color.primary)
@@ -202,8 +207,8 @@ struct ExerciseRow: View {
             Button { onOpen(guide) } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(guide.name).font(.body.weight(.semibold)).foregroundStyle(.primary)
-                        Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                        Text(guide.name).font(.brand(.body, .semibold)).foregroundStyle(.primary)
+                        Text(subtitle).font(.brand(.caption)).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 0)
                 }
