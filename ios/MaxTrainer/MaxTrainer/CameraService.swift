@@ -25,6 +25,12 @@ final class CameraService: NSObject, ObservableObject {
     private var latest: CVPixelBuffer?
     private let ciContext = CIContext()
 
+    // Frame orientation. Touched only on `queue`.
+    private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
+    private var rotationObservation: NSKeyValueObservation?
+    private var captureAngle: CGFloat = 90      // degrees clockwise that make frames upright for how the phone stands right now
+    private var appliedAngle: CGFloat = 90      // what the frame output is set to; a clip being written keeps its own
+
     func start(front: Bool) async {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
         var ok = status == .authorized
@@ -75,14 +81,32 @@ final class CameraService: NSObject, ObservableObject {
             output.setSampleBufferDelegate(self, queue: queue)
             if session.canAddOutput(output) { session.addOutput(output) }
         }
-        if let conn = output.connection(with: .video) {
-            if conn.isVideoRotationAngleSupported(90) { conn.videoRotationAngle = 90 }
-            if conn.isVideoMirroringSupported {
-                conn.automaticallyAdjustsVideoMirroring = false
-                conn.isVideoMirrored = front
-            }
+        // Frames come out upright for the way the phone really stands, so a tripod laid on its side records landscape.
+        // The screen stays portrait-locked, so the screen's orientation says nothing about the phone's position.
+        let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
+        rotationCoordinator = coordinator
+        captureAngle = coordinator.videoRotationAngleForHorizonLevelCapture
+        rotationObservation = coordinator.observe(\.videoRotationAngleForHorizonLevelCapture, options: [.new]) { [weak self] _, change in
+            guard let self, let angle = change.newValue else { return }
+            self.queue.async { self.captureAngle = angle; self.applyCaptureAngle() }
         }
+        if let conn = output.connection(with: .video), conn.isVideoMirroringSupported {
+            conn.automaticallyAdjustsVideoMirroring = false
+            conn.isVideoMirrored = front
+        }
+        applyCaptureAngle()
         session.commitConfiguration()
+    }
+
+    /// Turns the frame output to the angle the phone's position calls for. A clip being written keeps the angle it
+    /// started with, because its picture size must not change halfway.
+    private func applyCaptureAngle() {
+        guard let conn = output.connection(with: .video) else { return }
+        let angle = clip == nil ? captureAngle : appliedAngle
+        if conn.isVideoRotationAngleSupported(angle) {
+            if conn.videoRotationAngle != angle { conn.videoRotationAngle = angle }
+            appliedAngle = angle
+        }
     }
 
     // MARK: - Recording a set
@@ -91,6 +115,8 @@ final class CameraService: NSObject, ObservableObject {
     func startRecording() {
         queue.async { [self] in
             guard clip == nil else { return }
+            if let coordinator = rotationCoordinator { captureAngle = coordinator.videoRotationAngleForHorizonLevelCapture }
+            applyCaptureAngle()
             guard let c = ClipWriter(url: ClipStorage.newRecordingURL()) else {
                 DispatchQueue.main.async { self.recordError = "Could not start recording" }
                 return
@@ -109,6 +135,7 @@ final class CameraService: NSObject, ObservableObject {
                 return
             }
             clip = nil
+            applyCaptureAngle()                       // catch up with any turn that happened while recording
             DispatchQueue.main.async { self.isRecording = false }
             if !keep {
                 c.cancel()

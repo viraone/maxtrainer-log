@@ -17,6 +17,7 @@ final class ClipWriter {
     private var input: AVAssetWriterInput?
     private var adaptor: AVAssetWriterInputPixelBufferAdaptor?
     private var nextDue = CMTime.invalid
+    private var sourceSize: (w: Int, h: Int)?
     private var failed = false
     private(set) var framesWritten = 0
 
@@ -56,7 +57,10 @@ final class ClipWriter {
             writer.startSession(atSourceTime: pts)
             input = inp
             adaptor = ad
+            sourceSize = (w, h)
         }
+        // The phone can be turned between frames. A frame of another size would break the clip, so it is skipped.
+        guard let src = sourceSize, CVPixelBufferGetWidth(pixelBuffer) == src.w, CVPixelBufferGetHeight(pixelBuffer) == src.h else { return }
         guard writer.status == .writing, let input, let adaptor, input.isReadyForMoreMediaData else { return }
         // Keep frames on a 20 fps schedule: a 30 fps camera loses every third frame.
         if nextDue.isValid, CMTimeCompare(pts, CMTimeSubtract(nextDue, CMTime(value: 4, timescale: 1000))) < 0 { return }
