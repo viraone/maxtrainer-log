@@ -1,79 +1,109 @@
 {
-  "workouts" : [
+  "workouts": [
     {
-      "cues" : [
+      "cues": [
         "Pin your elbows to your sides",
         "Straighten your arms all the way down",
         "Tighten your core and avoid swinging"
       ],
-      "exercise" : "Barbell Curls — Biceps",
-      "improvements" : [
+      "exercise": "Barbell Curls — Biceps",
+      "improvements": [
         "Keep your elbows closer to your sides to minimize shoulder involvement",
         "Ensure full range of motion by fully extending at the bottom",
         "Avoid leaning back to maintain core stability"
       ],
-      "reps" : 6,
-      "summary" : "Solid start with your barbell curls. Let's refine the form a bit for optimal results.",
-      "timestamp" : "2026-08-29T00:20:15Z"
+      "reps": 6,
+      "summary": "Solid start with your barbell curls. Let's refine the form a bit for optimal results.",
+      "timestamp": "2026-08-29T00:20:15Z"
     },
     {
-      "cues" : [
+      "cues": [
         "Brace your core.",
         "Keep those elbows locked in place.",
         "Extend fully at the bottom."
       ],
-      "exercise" : "Barbell Curls — Biceps",
-      "improvements" : [
+      "exercise": "Barbell Curls — Biceps",
+      "improvements": [
         "Avoid swinging your body to lift the bar.",
         "Ensure full extension of arms at the bottom.",
         "Try to keep elbows close to your body."
       ],
-      "reps" : 3,
-      "summary" : "Solid start with your barbell curls! Let's refine a few details to get even more out of this exercise.",
-      "timestamp" : "2026-08-29T00:34:20Z"
+      "reps": 3,
+      "summary": "Solid start with your barbell curls! Let's refine a few details to get even more out of this exercise.",
+      "timestamp": "2026-08-29T00:34:20Z"
     },
     {
-      "cues" : [
-
-      ],
-      "duration_seconds" : 30,
-      "exercise" : "Planks",
-      "improvements" : [
-
-      ],
-      "set_number" : 1,
-      "summary" : "Planks: 30 seconds.",
-      "timestamp" : "2026-10-24T18:57:05Z"
+      "cues": [],
+      "duration_seconds": 30,
+      "exercise": "Planks",
+      "improvements": [],
+      "set_number": 1,
+      "summary": "Planks: 30 seconds.",
+      "timestamp": "2026-10-24T18:57:05Z"
     },
     {
-      "cues" : [
-
-      ],
-      "duration_seconds" : 30,
-      "exercise" : "Planks",
-      "improvements" : [
-
-      ],
-      "set_number" : 2,
-      "summary" : "Planks: 30 seconds.",
-      "timestamp" : "2026-10-24T18:58:21Z"
+      "cues": [],
+      "duration_seconds": 30,
+      "exercise": "Planks",
+      "improvements": [],
+      "set_number": 2,
+      "summary": "Planks: 30 seconds.",
+      "timestamp": "2026-10-24T18:58:21Z"
     },
     {
-      "cues" : [
-
-      ],
-      "duration_seconds" : 30,
-      "exercise" : "Planks",
-      "improvements" : [
-
-      ],
-      "set_number" : 1,
-      "summary" : "Planks: 30 seconds.",
-      "timestamp" : "2026-10-25T00:59:01Z",
-      "video" : {
-        "bytes" : 4403408,
-        "path" : "videos\/2026\/10\/25\/20261025T005901Z-planks-set1-ee0c68.mp4",
-        "repo" : "viraone\/maxtrainer-media"
+      "cues": [],
+      "duration_seconds": 30,
+      "exercise": "Planks",
+      "improvements": [],
+      "set_number": 1,
+      "summary": "Planks: 30 seconds.",
+      "timestamp": "2026-10-25T00:59:01Z",
+      "video": {
+        "bytes": 4403408,
+        "path": "videos/2026/10/25/20261025T005901Z-planks-set1-ee0c68.mp4",
+        "repo": "viraone/maxtrainer-media"
+      },
+      "ai": {
+        "score": 5,
+        "headline": "Solid elevated plank that improves as it goes, but the hips start too high and the head is lifted.",
+        "view": {
+          "person_visible": true,
+          "camera_angle": "side",
+          "confidence": "high"
+        },
+        "good": [
+          "Elbows are locked and arms stay straight throughout the hold.",
+          "Hands are planted flat and feet are up on the toes for a stable base.",
+          "Hips lower and the body line straightens noticeably in the later frames.",
+          "The elevated position on the bench is a good way to build plank endurance."
+        ],
+        "fix": [
+          {
+            "area": "hips",
+            "issue": "Hips are piked upward, especially in frames 1 to 4, breaking the straight line from shoulders to ankles.",
+            "cue": "Squeeze your glutes and lower your hips until your body is a straight line."
+          },
+          {
+            "area": "neck",
+            "issue": "The head is lifted and the neck is extended, particularly visible in frames 2 to 6.",
+            "cue": "Tuck your chin slightly and look at the floor to keep your neck neutral."
+          },
+          {
+            "area": "core",
+            "issue": "The high hips and slightly rounded back suggest the core is not fully braced.",
+            "cue": "Brace your abs like you're about to be poked in the stomach."
+          }
+        ],
+        "over_time": "The form improves during the set; the hips start high with slightly bent knees in the first few frames, then gradually lower and straighten out by the final frames.",
+        "next_set": "Focus on starting with your hips in line with your shoulders and ankles from the very first second.",
+        "cannot_judge": [
+          "Whether the shoulders are actively pushed down and back due to the loose shirt.",
+          "Exact wrist angle due to the camera angle.",
+          "Whether the elevated surface is completely stable."
+        ],
+        "model": "deepseek-flash",
+        "analyzed_at": "2026-10-25T02:44:17.729Z",
+        "frames": 8
       }
     }
   ]
