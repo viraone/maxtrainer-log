@@ -61,7 +61,8 @@
       "video": {
         "bytes": 4403408,
         "path": "videos/2026/10/25/20261025T005901Z-planks-set1-ee0c68.mp4",
-        "repo": "viraone/maxtrainer-media"
+        "repo": "viraone/maxtrainer-media",
+        "rotate": 270
       },
       "ai": {
         "score": 5,

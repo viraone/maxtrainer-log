@@ -44,8 +44,9 @@ for him to finish before answering.
 
 Every recorded set is also uploaded as a small clip, and the dashboard can review your form from it.
 
-**What happens on the phone.** "Let's go baby" starts recording. When the set ends, the clip (540x960, about 1 Mbps, roughly
-3.5 MB per 30 seconds) is saved to Photos and uploaded to a **private** GitHub repository, `viraone/maxtrainer-media`, under
+**What happens on the phone.** "Let's go baby" starts recording. The clip is recorded upright for the way the phone really
+stands, so a tripod laid on its side gives a landscape clip. When the set ends, the clip (540x960 or 960x540, about 1 Mbps,
+roughly 3.5 MB per 30 seconds) is saved to Photos and uploaded to a **private** GitHub repository, `viraone/maxtrainer-media`, under
 `videos/YYYY/MM/DD/`. The set's entry in `data/workouts.json` gets a `video` field with the clip's path. If the phone is
 offline the clip waits on the phone and uploads later. Switch uploads off in Settings with "Upload each set's video to GitHub".
 
@@ -59,11 +60,20 @@ DeepSeek (`deepseek-flash`) and shows a score, what looked good, what to fix wit
 the set. The feedback is saved into that set's `ai` field in the log, so it is there next time. Paste your DeepSeek API key
 into the dashboard once; it stays in that browser only. The review takes 20 to 30 seconds and costs a fraction of a cent.
 
+**Watching and listening.** The player has its own controls: play, seek, 0.5x and 0.25x slow motion, and turn left or right
+for a clip that was recorded sideways. The turn is saved on that set (`video.rotate`) and also applied to the frames the AI
+sees, so it reviews an upright picture. After an analysis the trainer says the feedback out loud with your browser's own
+voice (button "Hear your trainer", with a voice picker, speed, and a switch for talking right after each analysis). The
+written feedback is tucked under "Show the written feedback". The voice comes from your computer: a Premium or Enhanced
+voice (System Settings, Accessibility, Spoken Content) sounds far more natural than the default.
+
 **Privacy notes.** Clips never touch the public repo. Pressing Analyze sends 8 stills of that clip to DeepSeek. Deleting a
 set in Edit mode also deletes its clip from the private repo once you save.
 
-**Data format additions** (`data/workouts.json`): `video: {path, bytes, repo}` and
-`ai: {score, headline, view, good[], fix[{area, issue, cue}], over_time, next_set, cannot_judge[], model, analyzed_at, frames}`.
+**Data format additions** (`data/workouts.json`): `video: {path, bytes, repo, rotate}` (`rotate` is optional: 90, 180 or 270
+degrees clockwise to turn the clip upright when it is shown) and
+`ai: {score, headline, view, good[], fix[{area, issue, cue}], over_time, next_set, cannot_judge[], spoken, model, analyzed_at, frames}`
+(`spoken` is what the trainer says out loud; older analyses have none, and the dashboard builds it from the other fields).
 
 ## Data format
 

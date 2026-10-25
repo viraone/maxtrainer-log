@@ -227,7 +227,23 @@
   .vhead h2 { margin-bottom: 2px; }
   .vsub { font-size: 12.5px; color: var(--muted); }
   .vwrap { position: relative; background: #000; border-radius: 16px; overflow: hidden; display: grid; place-items: center; min-height: 170px; }
-  .vwrap video { width: 100%; max-height: 62vh; display: block; background: #000; }
+  .vstage { --ar: .5625; --rot: 0deg; position: relative; width: 100%; max-width: calc(62vh * var(--ar)); aspect-ratio: var(--ar); margin: 0 auto; container-type: size; cursor: pointer; background: #000; }
+  .vstage video { position: absolute; left: 50%; top: 50%; width: 100cqw; height: 100cqh; transform: translate(-50%, -50%) rotate(var(--rot)); object-fit: contain; background: #000; display: block; }
+  .vstage.turned video { width: 100cqh; height: 100cqw; }
+  .pbar { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .pbar .pbtn { flex: 0 0 auto; min-width: 38px; height: 34px; padding: 0 10px; background: var(--glass2); border: 1px solid var(--line3); color: var(--text); border-radius: 10px; cursor: pointer; font-size: 14px; font-family: inherit; transition: background .15s; }
+  .pbar .pbtn:hover { background: var(--glass3); }
+  .pbar .ptime { flex: 0 0 auto; font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--muted); min-width: 78px; text-align: center; }
+  .modal .pbar input[type=range] { flex: 1 1 auto; width: auto; min-width: 0; padding: 0; border: 0; background: none; accent-color: var(--accent); box-shadow: none; }
+  @media (max-width: 520px) { .pbar { flex-wrap: wrap; } .pbar .ptime { flex: 1 1 auto; text-align: left; } .modal .pbar input[type=range] { order: 5; flex: 1 0 100%; } }
+  .fbtalk { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0 4px; }
+  .talkbtn.on { box-shadow: 0 0 0 3px rgba(255,177,61,.25), 0 8px 24px rgba(255,138,61,.28); }
+  .vset, .written { margin-top: 12px; }
+  .vset summary, .written summary { font-size: 13px; }
+  .vsetbody { margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: var(--glass); border: 1px solid var(--line); }
+  .modal .vsetbody label.chk { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); font-weight: 500; margin: 12px 0 10px; }
+  .modal .vsetbody input[type=checkbox] { width: auto; padding: 0; accent-color: var(--accent); }
+  .modal .vsetbody select { padding: 8px 10px; font-size: 13.5px; }
   .vstatus { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: var(--muted); font-size: 13.5px; background: rgba(0,0,0,.6); line-height: 1.5; }
   .vstatus.hide { display: none; }
   .vstatus.err { color: #ff9a9a; }
@@ -333,8 +349,16 @@
       <button class="btn sm" id="vClose">Close</button>
     </div>
     <div class="vwrap">
-      <video id="vPlayer" controls playsinline preload="auto"></video>
+      <div class="vstage" id="vStage"><video id="vPlayer" playsinline preload="auto"></video></div>
       <div class="vstatus" id="vStatus"></div>
+    </div>
+    <div class="pbar" id="pBar">
+      <button class="pbtn" id="pPlay" aria-label="Play or pause">▶</button>
+      <span class="ptime" id="pTime">0:00 / 0:00</span>
+      <input type="range" id="pSeek" min="0" max="1" step="0.01" value="0" aria-label="Seek">
+      <button class="pbtn" id="pSpeed" aria-label="Playback speed">1×</button>
+      <button class="pbtn" id="pRotL" title="Rotate left" aria-label="Rotate left">↺</button>
+      <button class="pbtn" id="pRotR" title="Rotate right" aria-label="Rotate right">↻</button>
     </div>
     <div class="vactions">
       <button class="btn primary" id="vAnalyze" disabled>✨ Analyze my form</button>
@@ -939,6 +963,8 @@ Rules:
 - Be encouraging but honest. Do not flatter.
 - Still frames cannot show speed, so only comment on tempo if the frames clearly show it.
 - No medical advice. If something looks risky, say to make it easier or stop and ask a professional.
+- If the person looks sideways or upside down in the frames, say so in cannot_judge and still judge as well as you can.
+- The "spoken" text is read aloud by a text-to-speech voice, so write it for the ear: short sentences, contractions, no symbols.
 
 Reply with one JSON object and nothing else, with exactly these keys:
 {
@@ -949,7 +975,8 @@ Reply with one JSON object and nothing else, with exactly these keys:
   "fix": [{"area": "neck|head|shoulders|elbows|wrists|back|core|hips|knees|feet|range|tempo|other", "issue": "what you see", "cue": "short instruction to correct it"}],
   "over_time": "how form changed from the first frames to the last, or an empty string",
   "next_set": "the one thing to focus on in the next set",
-  "cannot_judge": ["things these frames do not let you assess"]
+  "cannot_judge": ["things these frames do not let you assess"],
+  "spoken": "what you would say out loud to the person, as the trainer standing next to them: 70 to 110 words of warm, direct, plain spoken English in the second person. Open with your verdict, then the one or two things that matter most, each with its cue, and finish with what to do next set. No lists, no frame numbers or times, no symbols, no markdown, no emoji."
 }`;
 
 function mmss(sec) { const s = Math.round(sec); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
@@ -998,6 +1025,7 @@ function normalizeAI(o) {
     over_time: String(o.over_time || "").trim().slice(0, 400),
     next_set: String(o.next_set || "").trim().slice(0, 240),
     cannot_judge: strList(o.cannot_judge, 5),
+    spoken: String(o.spoken || "").replace(/\s+/g, " ").trim().slice(0, 1200),
   };
 }
 
@@ -1034,6 +1062,75 @@ async function analyseFrames(key, set, frames, doFetch = fetch, clipSeconds) {
   let parsed;
   try { parsed = parseJSONLoose(text); } catch (e) { const err = new Error("The AI's answer could not be read. Try again."); err.raw = text; throw err; }
   return normalizeAI(parsed);
+}
+
+// Clockwise quarter turns only: anything else is rounded to the nearest one.
+const normRot = (deg) => ((Math.round((Number(deg) || 0) / 90) * 90) % 360 + 360) % 360;
+
+// Canvas size and transform that draw a w x h picture turned `deg` degrees clockwise (setTransform order: a b c d e f).
+function rotationSpec(w, h, deg) {
+  const d = normRot(deg);
+  if (d === 90) return { cw: h, ch: w, m: [0, 1, -1, 0, h, 0] };
+  if (d === 180) return { cw: w, ch: h, m: [-1, 0, 0, -1, w, h] };
+  if (d === 270) return { cw: h, ch: w, m: [0, -1, 1, 0, 0, w] };
+  return { cw: w, ch: h, m: [1, 0, 0, 1, 0, 0] };
+}
+
+// The words for the voice: remove "frames 1 to 4" style references, which only make sense on the screen.
+function stripFrameRefs(s) {
+  return String(s || "")
+    .replace(/\s*\((?:[^()]*\b)?frames?\b[^()]*\)/gi, "")
+    .replace(/,?\s*(?:(?:especially|particularly|mostly|mainly|notably|clearly|most visible|visible)\s+)*(?:in|across|from|during|at|over)\s+frames?\s+\d+(?:\s*(?:to|through|and|-|–)\s*\d+)?/gi, "")
+    .replace(/\bframes?\s+\d+(?:\s*(?:to|through|and|-|–)\s*\d+)?/gi, "")
+    .replace(/\s{2,}/g, " ").replace(/\s+([,.;!?])/g, "$1").trim();
+}
+const asSentence = (s) => { s = String(s || "").trim(); return s && !/[.!?]$/.test(s) ? s + "." : s; };
+const lowerFirst = (s) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
+
+// What the trainer says out loud. Newer analyses carry their own "spoken" text; older ones get one built from the fields.
+function buildSpokenScript(ai) {
+  if (!ai) return "";
+  if (ai.spoken && String(ai.spoken).trim()) return String(ai.spoken).trim();
+  const clean = (x) => asSentence(stripFrameRefs(x));
+  const parts = [];
+  if (ai.headline) parts.push(clean(ai.headline));
+  if (ai.score) parts.push(`I'd give that ${ai.score === 8 ? "an" : "a"} ${ai.score} out of 10.`);
+  const good = (ai.good || []).slice(0, 1).map(clean).filter(Boolean);
+  if (good.length) parts.push("What looked good:", ...good);
+  const fixes = (ai.fix || []).slice(0, 3);
+  if (fixes.length) {
+    parts.push(fixes.length === 1 ? "Here's the one thing to fix." : "Here's what to fix.");
+    fixes.forEach((f, i) => {
+      const issue = clean(f.issue);
+      parts.push(fixes.length > 1 ? `${["First,", "Second,", "Third,"][i]} ${lowerFirst(issue)}` : issue, clean(f.cue));
+    });
+  }
+  if (ai.over_time && !fixes.length) parts.push(clean(ai.over_time));       // with fixes to say, "next set" already covers it
+  if (ai.next_set) parts.push("For your next set, " + lowerFirst(clean(ai.next_set)));
+  return parts.filter(Boolean).join(" ").replace(/\s{2,}/g, " ").trim().slice(0, 1400);
+}
+
+// Speech voices: pick a natural English one by default. Novelty and robotic voices are skipped or ranked last.
+const NOVELTY_VOICE = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Fred|Good News|Hysterical|Jester|Junior|Kathy|Organ|Princess|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox)\b/i;
+const ROBOTIC_VOICE = /^(Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)\b/i;
+function rankVoice(v) {
+  const name = String((v && v.name) || ""), lang = String((v && v.lang) || "").replace("_", "-");
+  if (!/^en(-|$)/i.test(lang) || NOVELTY_VOICE.test(name)) return -1;
+  if (ROBOTIC_VOICE.test(name)) return 1;
+  let s = 10;
+  if (/^en-US$/i.test(lang)) s += 6; else if (/^en-(GB|AU|CA|IE|ZA|IN)$/i.test(lang)) s += 3;
+  if (/premium/i.test(name)) s += 40; else if (/enhanced|neural|natural/i.test(name)) s += 28;
+  const liked = ["Evan", "Tom", "Aaron", "Nathan", "Alex", "Daniel", "Ava", "Allison", "Samantha", "Zoe", "Susan", "Karen", "Moira", "Google US English"];
+  const i = liked.findIndex((p) => name.toLowerCase().startsWith(p.toLowerCase()));
+  if (i >= 0) s += 14 - i;
+  if (v.localService) s += 1;
+  return s;
+}
+function pickVoice(voices, savedURI) {
+  const list = (voices || []).filter((v) => rankVoice(v) >= 0);
+  const saved = savedURI && list.find((v) => v.voiceURI === savedURI);
+  if (saved) return saved;
+  return list.slice().sort((a, b) => rankVoice(b) - rankVoice(a))[0] || null;
 }
 // ==== AI END ====
 
@@ -1091,15 +1188,18 @@ async function loadClip(raw) {
 function openVideo(raw) {
   if (!raw || !raw.video) return;
   if (!token()) { openTokenDialog(WHY_VIDEO, () => openVideo(raw)); return; }
+  if (pendingRot && pendingRot.raw !== raw) flushRotationSave();
+  stopTalking();
   viewing = raw; viewingBlob = null;
   const d = new Date(raw.timestamp);
   $("#vTitle").textContent = `${raw.exercise} · Set ${raw.set_number ?? 1}`;
   $("#vSub").textContent = `${amount(raw)} · ${dateShort(d)} · ${timeShort(d)}`;
   $("#vFrames").innerHTML = "";
-  $("#vSaved").textContent = ""; $("#vSaved").className = "savednote";
+  setSaved("", "");
   $("#vFeedback").innerHTML = raw.ai ? renderFeedback(raw.ai) : "";
   if (viewingURL) { URL.revokeObjectURL(viewingURL); viewingURL = null; }
-  const player = $("#vPlayer"); player.pause(); player.removeAttribute("src"); player.load();
+  player.pause(); player.removeAttribute("src"); player.load(); player.playbackRate = 1; $("#pSpeed").textContent = "1×";
+  applyRotation(rotOf(raw)); syncPlayerUI();
   $("#vAnalyze").disabled = true; syncAnalyzeLabel(); setVNote("");
   setVStatus(`<span><span class="spin"></span>Loading video…</span>`);
   $("#videoModal").classList.add("show");
@@ -1112,7 +1212,8 @@ function openVideo(raw) {
 }
 
 function closeVideo() {
-  $("#vPlayer").pause();
+  player.pause(); stopTalking();
+  if (pendingRot) flushRotationSave();
   $("#videoModal").classList.remove("show");
   if (viewingURL) { URL.revokeObjectURL(viewingURL); viewingURL = null; }
   viewing = null; viewingBlob = null;
@@ -1120,10 +1221,150 @@ function closeVideo() {
 $("#vClose").onclick = closeVideo;
 $("#videoModal").onclick = (e) => { if (e.target === $("#videoModal")) closeVideo(); };
 document.addEventListener("keydown", (e) => {
-  if (e.key !== "Escape") return;
-  for (const id of ["#aiKeyModal", "#tokenModal"]) if ($(id).classList.contains("show")) { $(id).classList.remove("show"); return; }
-  if ($("#videoModal").classList.contains("show")) closeVideo();
+  const open = $("#videoModal").classList.contains("show");
+  if (e.key === "Escape") {
+    for (const id of ["#aiKeyModal", "#tokenModal"]) if ($(id).classList.contains("show")) { $(id).classList.remove("show"); return; }
+    if (open) closeVideo();
+    return;
+  }
+  if (!open || $("#aiKeyModal").classList.contains("show") || $("#tokenModal").classList.contains("show")) return;
+  if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test((document.activeElement || {}).tagName || "")) return;
+  if (e.code === "Space") { e.preventDefault(); togglePlay(); }
+  else if (e.key === "ArrowLeft") player.currentTime = Math.max(0, player.currentTime - 1);
+  else if (e.key === "ArrowRight") player.currentTime = Math.min(player.duration || 0, player.currentTime + 1);
 });
+
+// ---- the player: our own controls, so turning the picture never turns the buttons ----
+const player = $("#vPlayer");
+let seeking = false, pendingRot = null;
+const rotOf = (raw) => normRot(raw && raw.video && raw.video.rotate);
+function setSaved(text, cls) { const el = $("#vSaved"); el.textContent = text; el.className = "savednote" + (cls ? " " + cls : ""); }
+
+function applyRotation(deg) {
+  const d = normRot(deg), turned = d % 180 !== 0;
+  const vw = player.videoWidth || 9, vh = player.videoHeight || 16;
+  const stage = $("#vStage");
+  stage.style.setProperty("--ar", String(turned ? vh / vw : vw / vh));
+  stage.style.setProperty("--rot", d + "deg");
+  stage.classList.toggle("turned", turned);
+}
+function syncPlayerUI() {
+  const dur = isFinite(player.duration) ? player.duration : 0;
+  $("#pPlay").textContent = player.paused ? "▶" : "❚❚";
+  $("#pTime").textContent = `${mmss(player.currentTime || 0)} / ${mmss(dur)}`;
+  if (!seeking) { $("#pSeek").max = dur || 1; $("#pSeek").value = player.currentTime || 0; }
+}
+function togglePlay() {
+  if (!player.getAttribute("src")) return;
+  if (player.paused) player.play().catch(() => {}); else player.pause();
+}
+["play", "pause", "timeupdate", "loadedmetadata", "durationchange", "ended", "seeked"].forEach((ev) => player.addEventListener(ev, syncPlayerUI));
+player.addEventListener("loadedmetadata", () => applyRotation(rotOf(viewing)));
+$("#pPlay").onclick = togglePlay;
+$("#vStage").onclick = togglePlay;
+// A mouse click on a player button gives focus back to the page, so Space and the arrow keys keep working (keyboard use is untouched).
+$("#pBar").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && e.detail > 0) b.blur(); });
+$("#pSeek").addEventListener("input", (e) => { seeking = true; player.currentTime = Number(e.target.value); $("#pTime").textContent = `${mmss(player.currentTime)} / ${mmss(player.duration || 0)}`; });
+$("#pSeek").addEventListener("change", () => { seeking = false; syncPlayerUI(); });
+const SPEEDS = [[1, "1×"], [0.5, "0.5×"], [0.25, "0.25×"]];
+$("#pSpeed").onclick = () => {
+  const i = (SPEEDS.findIndex(([r]) => r === player.playbackRate) + 1) % SPEEDS.length;
+  player.playbackRate = SPEEDS[i][0]; $("#pSpeed").textContent = SPEEDS[i][1];
+};
+
+// ---- turning the clip: saved per set, so it opens upright from then on ----
+function rotateBy(delta) {
+  if (!viewing || !viewing.video) return;
+  const n = normRot(rotOf(viewing) + delta);
+  if (n) viewing.video.rotate = n; else delete viewing.video.rotate;
+  applyRotation(n);
+  if (viewing.ai) setVNote("Turned. Tap “Analyze again” so the AI reviews it upright.");
+  queueRotationSave(viewing);
+}
+$("#pRotL").onclick = () => rotateBy(-90);
+$("#pRotR").onclick = () => rotateBy(90);
+function queueRotationSave(raw) {
+  if (pendingRot) clearTimeout(pendingRot.t);
+  setSaved("Saving the rotation…", "");
+  pendingRot = { raw, t: setTimeout(flushRotationSave, 1200) };
+}
+async function flushRotationSave() {
+  const p = pendingRot;
+  if (!p) return;
+  pendingRot = null; clearTimeout(p.t);
+  const r = await saveEntry(p.raw, (e) => {
+    if (!e.video) return false;
+    const n = rotOf(p.raw);
+    if (n) e.video.rotate = n; else delete e.video.rotate;
+    return true;
+  }, `Turn video: ${p.raw.exercise} set ${p.raw.set_number ?? 1}`);
+  if (viewing === p.raw) setSaved(r.ok ? "Rotation saved. This clip will open this way from now on." : `Turned here but not saved: ${r.why}`, r.ok ? "ok" : "bad");
+}
+
+// ---- the trainer's voice (the browser's own speech, free and offline) ----
+const VOICE_KEY = "maxtrainer_voice", RATE_KEY = "maxtrainer_voice_rate", AUTO_KEY = "maxtrainer_talk_auto", WRITTEN_KEY = "maxtrainer_written_open";
+const pref = (k, d = "") => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const hasTTS = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+let talkRun = 0;
+
+function chunkForSpeech(text, max = 220) {
+  const sentences = String(text).replace(/\s+/g, " ").trim().match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) || [];
+  const out = []; let cur = "";
+  for (const raw of sentences) {
+    const sen = raw.trim();
+    if (!sen) continue;
+    if (cur && (cur + " " + sen).length > max) { out.push(cur); cur = sen; } else cur = cur ? cur + " " + sen : sen;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function setTalkingUI(on) {
+  document.querySelectorAll("[data-talk]").forEach((b) => { b.textContent = on ? "⏹ Stop" : "🔊 Hear your trainer"; b.classList.toggle("on", on); });
+}
+function stopTalking() { talkRun++; if (hasTTS) speechSynthesis.cancel(); setTalkingUI(false); }
+function startTalking(text) {
+  if (!hasTTS || !String(text || "").trim()) return;
+  talkRun++;
+  const run = talkRun;
+  speechSynthesis.cancel();
+  setTalkingUI(true);
+  setTimeout(() => {                       // Chrome drops the first words if speak() follows cancel() immediately
+    if (run !== talkRun) return;
+    const voice = pickVoice(speechSynthesis.getVoices(), pref(VOICE_KEY));
+    const rate = Number(pref(RATE_KEY, "1")) || 1;
+    const chunks = chunkForSpeech(text);     // short pieces: long ones get cut off after about 15 seconds in Chrome
+    chunks.forEach((c, i) => {
+      const u = new SpeechSynthesisUtterance(c);
+      if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = "en-US";
+      u.rate = rate;
+      if (i === chunks.length - 1) u.onend = () => { if (run === talkRun) setTalkingUI(false); };
+      u.onerror = (ev) => { if (run === talkRun && ev.error !== "interrupted" && ev.error !== "canceled") setTalkingUI(false); };
+      speechSynthesis.speak(u);
+    });
+  }, 80);
+}
+function toggleTalk() {
+  if (document.querySelector("[data-talk].on")) stopTalking();
+  else if (viewing && viewing.ai) startTalking(buildSpokenScript(viewing.ai));
+}
+function voiceOptions() {
+  const list = (hasTTS ? speechSynthesis.getVoices() : []).filter((v) => rankVoice(v) >= 0).sort((a, b) => rankVoice(b) - rankVoice(a));
+  const cur = pickVoice(list, pref(VOICE_KEY));
+  return list.map((v) => `<option value="${esc(v.voiceURI)}"${cur && cur.voiceURI === v.voiceURI ? " selected" : ""}>${esc(v.name)} · ${esc(v.lang)}</option>`).join("");
+}
+if (hasTTS) speechSynthesis.addEventListener("voiceschanged", () => { const sel = $("#voiceSel"); if (sel) sel.innerHTML = voiceOptions() || "<option>No English voices found</option>"; });
+$("#vFeedback").addEventListener("click", (e) => {
+  if (e.target.closest("[data-talk]")) toggleTalk();
+  else if (e.target.closest("[data-test-voice]")) startTalking("Hi, it's Max. This is how I sound. Let's get to work.");
+});
+$("#vFeedback").addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "voiceSel") { setPref(VOICE_KEY, t.value); startTalking("Hi, it's Max. This is how I sound."); }
+  else if (t.id === "rateSel") setPref(RATE_KEY, t.value);
+  else if (t.id === "autoTalk") setPref(AUTO_KEY, t.checked ? "1" : "0");
+});
+$("#vFeedback").addEventListener("toggle", (e) => { if (e.target.classList && e.target.classList.contains("written")) setPref(WRITTEN_KEY, e.target.open ? "1" : "0"); }, true);
 
 // AI key dialog
 function openAIKeyDialog(next) {
@@ -1142,8 +1383,8 @@ $("#aiKeySave").onclick = () => {
 };
 $("#vKeyLink").onclick = () => openAIKeyDialog(null);
 
-// Pick evenly spaced still frames from the loaded clip
-async function extractFrames(blob, maxDim = 640) {
+// Pick evenly spaced still frames from the loaded clip, turned upright by `rotate` degrees clockwise.
+async function extractFrames(blob, maxDim = 640, rotate = 0) {
   const url = URL.createObjectURL(blob);
   const v = document.createElement("video");
   v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
@@ -1154,12 +1395,14 @@ async function extractFrames(blob, maxDim = 640) {
     const n = dur < 8 ? 6 : dur > 45 ? 10 : 8;
     const scale = Math.min(1, maxDim / Math.max(v.videoWidth, v.videoHeight));
     const w = Math.max(2, Math.round(v.videoWidth * scale)), h = Math.max(2, Math.round(v.videoHeight * scale));
-    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const spec = rotationSpec(w, h, rotate);
+    const c = document.createElement("canvas"); c.width = spec.cw; c.height = spec.ch;
     const ctx = c.getContext("2d");
     const frames = [];
     for (let i = 0; i < n; i++) {
       const t = Math.max(0, Math.min(dur - 0.05, ((i + 0.5) * dur) / n));
       await new Promise((res) => { const done = () => { v.onseeked = null; res(); }; v.onseeked = done; setTimeout(done, 5000); v.currentTime = t; });
+      ctx.setTransform(...spec.m);
       ctx.drawImage(v, 0, 0, w, h);
       frames.push({ t, data: c.toDataURL("image/jpeg", 0.72) });
     }
@@ -1174,13 +1417,24 @@ function renderFeedback(ai) {
   const when = ai.analyzed_at ? new Date(ai.analyzed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
   const meta = [angle, ai.view ? `${esc(ai.view.confidence)} confidence` : "", ai.frames ? `${ai.frames} frames` : "", esc(ai.model || ""), when].filter(Boolean).join(" · ");
   const li = (arr) => arr.map((x) => `<li>${esc(x)}</li>`).join("");
-  return `<div class="fb">
-    <div class="fbhead">${ring}<div><div class="fbtitle">AI trainer feedback</div><div class="fbline">${esc(ai.headline || "Form review")}</div><div class="fbmeta">${meta}</div></div></div>
-    ${ai.good && ai.good.length ? `<h4>What looked good</h4><ul class="good">${li(ai.good)}</ul>` : ""}
+  const rate = pref(RATE_KEY, "1");
+  const talk = hasTTS ? `<div class="fbtalk"><button class="btn primary talkbtn" data-talk>🔊 Hear your trainer</button><span class="vnote">Max tells you out loud, so you don't have to read.</span></div>
+    <details class="vset"><summary>Voice settings</summary><div class="vsetbody">
+      <label for="voiceSel">Voice</label><select id="voiceSel">${voiceOptions() || "<option>No English voices found</option>"}</select>
+      <label for="rateSel">Speed</label><select id="rateSel">${[["0.9", "Slower"], ["1", "Normal"], ["1.12", "Faster"]].map(([v, n]) => `<option value="${v}"${rate === v ? " selected" : ""}>${n}</option>`).join("")}</select>
+      <label class="chk"><input type="checkbox" id="autoTalk"${pref(AUTO_KEY, "1") === "1" ? " checked" : ""}> Talk to me right after each analysis</label>
+      <button class="btn sm" data-test-voice>Test this voice</button>
+      <div class="help">Voices come from your computer. For a more natural one, add a Premium or Enhanced voice in System Settings, Accessibility, Spoken Content.</div>
+    </div></details>` : `<div class="vnote" style="margin-top:12px">This browser can't speak. Try Chrome or Safari.</div>`;
+  const written = `${ai.good && ai.good.length ? `<h4>What looked good</h4><ul class="good">${li(ai.good)}</ul>` : ""}
     ${ai.fix && ai.fix.length ? `<h4>Fix next time</h4><div class="fixes">${ai.fix.map((f) => `<div class="fix"><span class="area">${esc(f.area)}</span><div><div class="issue">${esc(f.issue)}</div>${f.cue ? `<div class="cue">Cue: ${esc(f.cue)}</div>` : ""}</div></div>`).join("")}</div>` : ""}
     ${ai.over_time ? `<h4>Over the set</h4><p>${esc(ai.over_time)}</p>` : ""}
     ${ai.next_set ? `<h4>Next set</h4><p class="focus">${esc(ai.next_set)}</p>` : ""}
-    ${ai.cannot_judge && ai.cannot_judge.length ? `<details><summary>What the AI could not judge</summary><ul style="margin-top:8px">${li(ai.cannot_judge)}</ul></details>` : ""}
+    ${ai.cannot_judge && ai.cannot_judge.length ? `<details><summary>What the AI could not judge</summary><ul style="margin-top:8px">${li(ai.cannot_judge)}</ul></details>` : ""}`;
+  return `<div class="fb">
+    <div class="fbhead">${ring}<div><div class="fbtitle">AI trainer feedback</div><div class="fbline">${esc(ai.headline || "Form review")}</div><div class="fbmeta">${meta}</div></div></div>
+    ${talk}
+    <details class="written"${pref(WRITTEN_KEY, "0") === "1" ? " open" : ""}><summary>Show the written feedback</summary>${written}</details>
     <div class="disc">AI feedback from a few still frames. It can miss details or misjudge angles, and it is not medical advice.</div>
   </div>`;
 }
@@ -1189,25 +1443,26 @@ async function analyseCurrent() {
   if (!viewing || !viewingBlob || analysing) return;
   if (!aiKey()) { openAIKeyDialog(analyseCurrent); return; }
   const raw = viewing, btn = $("#vAnalyze");
+  stopTalking();
   analysing = true; btn.disabled = true;
-  $("#vSaved").textContent = ""; $("#vSaved").className = "savednote";
+  setSaved("", "");
   try {
     setVNote(`<span class="spin"></span>Picking frames from the clip…`);
-    const frames = await extractFrames(viewingBlob);
+    const frames = await extractFrames(viewingBlob, 640, rotOf(raw));
     if (viewing === raw) $("#vFrames").innerHTML = frames.map((f) => `<figure><img src="${f.data}" alt="Frame at ${mmss(f.t)}"><figcaption>${mmss(f.t)}</figcaption></figure>`).join("");
     setVNote(`<span class="spin"></span>Your AI trainer is reviewing ${frames.length} frames. This takes 20 to 30 seconds…`);
     const ai = await analyseFrames(aiKey(), raw, frames, fetch, frames.duration);
     ai.model = AI_MODEL; ai.analyzed_at = new Date().toISOString(); ai.frames = frames.length;
     raw.ai = ai;
-    if (viewing === raw) $("#vFeedback").innerHTML = renderFeedback(ai);
+    if (viewing === raw) {
+      $("#vFeedback").innerHTML = renderFeedback(ai);
+      if (pref(AUTO_KEY, "1") === "1") startTalking(buildSpokenScript(ai));
+    }
     render();
     const saved = await saveAI(raw);
-    if (viewing === raw) {
-      $("#vSaved").textContent = saved.ok ? "Saved to your log. You can reopen this feedback any time." : `Shown here but not saved: ${saved.why}`;
-      $("#vSaved").className = "savednote " + (saved.ok ? "ok" : "bad");
-    }
+    if (viewing === raw) setSaved(saved.ok ? "Saved to your log. You can reopen this feedback any time." : `Shown here but not saved: ${saved.why}`, saved.ok ? "ok" : "bad");
   } catch (err) {
-    if (viewing === raw) { $("#vSaved").textContent = err.message; $("#vSaved").className = "savednote bad"; }
+    if (viewing === raw) setSaved(err.message, "bad");
     if (err.raw && viewing === raw) {
       $("#vFeedback").querySelectorAll(".rawreply").forEach((n) => n.remove());
       $("#vFeedback").insertAdjacentHTML("beforeend", `<details class="rawreply" style="margin-top:12px"><summary>What the AI actually said</summary><p style="white-space:pre-wrap;margin-top:8px;font-size:13px;color:var(--muted)">${esc(err.raw)}</p></details>`);
@@ -1218,8 +1473,9 @@ async function analyseCurrent() {
 }
 $("#vAnalyze").onclick = analyseCurrent;
 
-// Save the AI feedback into this set's entry in data/workouts.json (other fields are left alone).
-async function saveAI(raw) {
+// Change one set's entry in data/workouts.json with a fresh read, so nothing else in the log is touched.
+// `apply(entry)` edits the entry and returns false when it cannot.
+async function saveEntry(raw, apply, message) {
   if (isDemo) return { ok: false, why: "demo mode does not save." };
   const url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${REPO.path}`;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -1236,10 +1492,10 @@ async function saveAI(raw) {
       let i = list.findIndex((w) => w.timestamp === raw.timestamp && w.exercise === raw.exercise);
       if (i < 0) { const same = list.filter((w) => w.timestamp === raw.timestamp); if (same.length === 1) i = list.indexOf(same[0]); }
       if (i < 0) return { ok: false, why: "this set is not in the saved log yet (save your edits first)." };
-      list[i].ai = raw.ai;
+      if (apply(list[i]) === false) return { ok: false, why: "this set has no video in the saved log." };
       const body = JSON.stringify({ ...data, workouts: list }, null, 2) + "\n";
       const put = await fetch(url, { method: "PUT", headers: { ...ghHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify({ message: `AI form feedback: ${raw.exercise} set ${raw.set_number ?? 1}`, content: btoa(unescape(encodeURIComponent(body))), sha: meta.sha, branch: REPO.branch }) });
+        body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(body))), sha: meta.sha, branch: REPO.branch }) });
       if (put.ok) return { ok: true };
       if (put.status === 409 || put.status === 422) continue;           // the log changed under us: read it again
       if (put.status === 403 || put.status === 404) return { ok: false, why: "your token cannot write to the log." };
@@ -1248,6 +1504,8 @@ async function saveAI(raw) {
   }
   return { ok: false, why: "the log kept changing; try again." };
 }
+// Save the AI feedback into this set's entry (other fields are left alone).
+const saveAI = (raw) => saveEntry(raw, (e) => { e.ai = raw.ai; return true; }, `AI form feedback: ${raw.exercise} set ${raw.set_number ?? 1}`);
 
 // Deleting a set in edit mode also removes its video from the private repo, once the edit is saved.
 function queueClipDelete(raw) { if (raw && raw.video && raw.video.path) orphanClips.push(raw.video); }
