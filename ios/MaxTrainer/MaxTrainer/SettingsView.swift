@@ -27,12 +27,13 @@ struct SettingsView: View {
                     TextField("Repository", text: $settings.repoName).textInputAutocapitalization(.never).autocorrectionDisabled()
                     TextField("File path", text: $settings.repoPath).textInputAutocapitalization(.never).autocorrectionDisabled()
                     TextField("Branch", text: $settings.repoBranch).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    TextField("Private video repository", text: $settings.mediaRepoName).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Link("Open the dashboard", destination: settings.dashboardURL)
                     Link("Create a fine-grained token (Contents: read & write)", destination: URL(string: "https://github.com/settings/personal-access-tokens/new")!)
                 } header: {
                     Text("Dashboard (GitHub)")
                 } footer: {
-                    Text("Each logged set is committed to \(settings.repoPath) and shows up on the GitHub Pages dashboard. Sets are kept on the phone until they sync.")
+                    Text("Each logged set is committed to \(settings.repoPath) and shows up on the GitHub Pages dashboard. Set videos go to the private repository \(settings.repoOwner)/\(settings.mediaRepoName), so your token must include that repository with Contents: read and write. Sets and videos wait on the phone until they sync.")
                 }
 
                 Section {
@@ -48,6 +49,7 @@ struct SettingsView: View {
                     }
                     Toggle("Front camera", isOn: $settings.useFrontCamera)
                     Toggle("Record each set to Photos", isOn: $settings.recordSets)
+                    Toggle("Upload each set's video to GitHub", isOn: $settings.uploadClips)
                 } header: {
                     Text("Voice & camera")
                 } footer: {

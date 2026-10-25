@@ -25,7 +25,7 @@ struct GitHubService {
 
     private var contentsURL: URL {
         let path = settings.repoPath.split(separator: "/").map { String($0).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }.joined(separator: "/")
-        return URL(string: "https://api.github.com/repos/\(settings.repoOwner)/\(settings.repoName)/contents/\(path)")!
+        return URL(string: "\(settings.githubAPIBase)/repos/\(settings.repoOwner)/\(settings.repoName)/contents/\(path)")!
     }
 
     private func request(_ method: String, query: [URLQueryItem] = []) throws -> URLRequest {

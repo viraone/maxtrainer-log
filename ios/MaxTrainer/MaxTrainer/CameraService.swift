@@ -16,11 +16,7 @@ final class CameraService: NSObject, ObservableObject {
     @Published var recordError: String?
 
     // Recording state, touched only on `queue`
-    private var writer: AVAssetWriter?
-    private var writerInput: AVAssetWriterInput?
-    private var adaptor: AVAssetWriterInputPixelBufferAdaptor?
-    private var recordingURL: URL?
-    private var recordingActive = false
+    private var clip: ClipWriter?
 
     private let queue = DispatchQueue(label: "com.viraone.maxtrainer.camera")
     private let output = AVCaptureVideoDataOutput()
@@ -91,94 +87,54 @@ final class CameraService: NSObject, ObservableObject {
 
     // MARK: - Recording a set
 
-    /// Start writing the live frames to a temporary movie file.
+    /// Starts writing the live frames to a clip file in ClipStorage.
     func startRecording() {
         queue.async { [self] in
-            guard !recordingActive else { return }
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent("set-\(Int(Date().timeIntervalSince1970)).mov")
-            try? FileManager.default.removeItem(at: url)
-            guard let w = try? AVAssetWriter(outputURL: url, fileType: .mov) else {
+            guard clip == nil else { return }
+            guard let c = ClipWriter(url: ClipStorage.newRecordingURL()) else {
                 DispatchQueue.main.async { self.recordError = "Could not start recording" }
                 return
             }
-            writer = w
-            writerInput = nil
-            adaptor = nil
-            recordingURL = url
-            recordingActive = true
+            clip = c
             DispatchQueue.main.async { self.isRecording = true; self.recordError = nil }
         }
     }
 
-    /// Stop and either save the clip to Photos (named after the exercise) or throw it away.
-    func stopRecording(save: Bool, label: String) {
+    /// Stops recording. With `keep` the finished clip's URL comes back on the main queue and the caller owns the file.
+    /// Without it the recording is thrown away and the URL is nil.
+    func stopRecording(keep: Bool, completion: ((URL?) -> Void)? = nil) {
         queue.async { [self] in
-            guard recordingActive, let w = writer, let url = recordingURL else { return }
-            recordingActive = false
-            DispatchQueue.main.async { self.isRecording = false }
-            let input = writerInput
-            writer = nil; writerInput = nil; adaptor = nil; recordingURL = nil
-            guard w.status == .writing, let input else {
-                w.cancelWriting()
-                try? FileManager.default.removeItem(at: url)
+            guard let c = clip else {
+                DispatchQueue.main.async { completion?(nil) }
                 return
             }
-            input.markAsFinished()
-            w.finishWriting {
-                guard save, w.status == .completed else {
-                    try? FileManager.default.removeItem(at: url)
-                    return
-                }
-                self.saveToPhotos(url, label: label)
+            clip = nil
+            DispatchQueue.main.async { self.isRecording = false }
+            if !keep {
+                c.cancel()
+                DispatchQueue.main.async { completion?(nil) }
+                return
             }
+            c.finish { url in DispatchQueue.main.async { completion?(url) } }
         }
     }
 
-    private func saveToPhotos(_ url: URL, label: String) {
+    /// Adds a clip to the Photos library. The file is left in place for the caller to remove.
+    func saveToPhotos(_ url: URL, completion: ((Bool) -> Void)? = nil) {
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {
-                DispatchQueue.main.async { self.recordError = "Photos access needed to save clips" }
-                try? FileManager.default.removeItem(at: url)
+                DispatchQueue.main.async { self.recordError = "Photos access needed to save clips"; completion?(false) }
                 return
             }
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
             }) { ok, error in
-                try? FileManager.default.removeItem(at: url)
                 DispatchQueue.main.async {
                     if ok { self.lastClipSaved = Date() } else { self.recordError = error?.localizedDescription ?? "Could not save the clip" }
+                    completion?(ok)
                 }
             }
         }
-    }
-
-    /// Called on `queue` for every frame while recording.
-    private func record(_ sampleBuffer: CMSampleBuffer, pixelBuffer: CVPixelBuffer) {
-        guard recordingActive, let w = writer else { return }
-        let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-        if w.status == .unknown {
-            let width = CVPixelBufferGetWidth(pixelBuffer), height = CVPixelBufferGetHeight(pixelBuffer)
-            let settings: [String: Any] = [
-                AVVideoCodecKey: AVVideoCodecType.h264,
-                AVVideoWidthKey: width,
-                AVVideoHeightKey: height,
-                AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 6_000_000],
-            ]
-            let input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
-            input.expectsMediaDataInRealTime = true
-            guard w.canAdd(input) else { recordingActive = false; return }
-            w.add(input)
-            adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-                kCVPixelBufferWidthKey as String: width,
-                kCVPixelBufferHeightKey as String: height,
-            ])
-            writerInput = input
-            guard w.startWriting() else { recordingActive = false; return }
-            w.startSession(atSourceTime: pts)
-        }
-        guard w.status == .writing, let input = writerInput, input.isReadyForMoreMediaData else { return }
-        adaptor?.append(pixelBuffer, withPresentationTime: pts)
     }
 
     /// Latest frame, downscaled, as JPEG. Nil when the camera is not running.
@@ -204,6 +160,6 @@ extension CameraService: AVCaptureVideoDataOutputSampleBufferDelegate {
         lock.lock()
         latest = pb
         lock.unlock()
-        record(sampleBuffer, pixelBuffer: pb)
+        clip?.append(pb, at: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
     }
 }

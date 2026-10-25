@@ -1,23 +1,34 @@
 import Foundation
 import Combine
 
-/// Every set ever logged on this phone, plus pushing the unsynced ones to the dashboard's JSON file.
+/// Every set ever logged on this phone. Pushes unsynced sets into the dashboard's JSON file and uploads each
+/// set's recorded clip to the private media repo.
 @MainActor
 final class WorkoutLogStore: ObservableObject {
     @Published private(set) var sets: [WorkoutSet] = []
     @Published var isSyncing = false
+    @Published var isUploading = false
     @Published var lastSyncError: String?
+    @Published var lastClipError: String?
     @Published var lastSyncDate: Date?
 
     private let settings = AppSettings.shared
-    private let fileURL: URL = {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return dir.appendingPathComponent("sets.json")
-    }()
+    private let fileURL: URL
+    private var syncAgain = false
+    private var uploadAgain = false
+    private static let maxPendingClips = 40
 
-    init() { load() }
+    /// Tests pass a disposable folder; the app uses its Documents folder.
+    init(directory: URL? = nil) {
+        let dir = directory ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        fileURL = dir.appendingPathComponent("sets.json")
+        load()
+        ClipStorage.pruneOrphans(keeping: Set(sets.compactMap(\.clipFile)))
+    }
 
     var pending: [WorkoutSet] { sets.filter { !$0.synced } }
+    /// Sets whose clip is recorded but not uploaded yet.
+    var pendingClips: [WorkoutSet] { sets.filter { $0.video == nil && $0.clipFile != nil } }
 
     func append(_ set: WorkoutSet) {
         sets.append(set)
@@ -26,44 +37,137 @@ final class WorkoutLogStore: ObservableObject {
 
     func update(_ set: WorkoutSet) {
         if let i = sets.firstIndex(where: { $0.id == set.id }) {
-            sets[i] = set
+            // Never lose a video or clip that was attached while the caller held an older copy.
+            var merged = set
+            if merged.video == nil { merged.video = sets[i].video }
+            if merged.clipFile == nil { merged.clipFile = sets[i].clipFile }
+            sets[i] = merged
             save()
         }
     }
 
     func clearLocal() {
+        for s in sets { if let n = s.clipFile { ClipStorage.remove(n) } }
         sets = []
         save()
     }
 
-    /// Push every unsynced set into data/workouts.json as one commit.
+    // MARK: - Clips
+
+    /// A finished recording belongs to this set and waits for upload.
+    func attachLocalClip(setID: String, fileName: String) {
+        guard let i = sets.firstIndex(where: { $0.id == setID }) else {
+            ClipStorage.remove(fileName)
+            return
+        }
+        sets[i].clipFile = fileName
+        save()
+        trimPendingClips()
+    }
+
+    /// Keeps at most `maxPendingClips` unsent clips on the phone; the oldest are dropped (they are still in Photos).
+    private func trimPendingClips() {
+        let extra = pendingClips.count - Self.maxPendingClips
+        guard extra > 0 else { return }
+        for id in pendingClips.prefix(extra).map(\.id) {
+            if let i = sets.firstIndex(where: { $0.id == id }), let n = sets[i].clipFile {
+                ClipStorage.remove(n)
+                sets[i].clipFile = nil
+            }
+        }
+        save()
+    }
+
+    /// Uploads every waiting clip, then pushes the log. Safe to call often.
+    func flush() async {
+        await uploadPendingClips()
+        await sync()
+    }
+
+    func uploadPendingClips() async {
+        guard settings.uploadClips, settings.hasGitHub else { return }
+        if isUploading { uploadAgain = true; return }
+        isUploading = true
+        defer { isUploading = false }
+        repeat {
+            uploadAgain = false
+            for id in pendingClips.map(\.id) {
+                guard let i = sets.firstIndex(where: { $0.id == id }), let name = sets[i].clipFile else { continue }
+                guard ClipStorage.exists(name) else {
+                    sets[i].clipFile = nil
+                    save()
+                    continue
+                }
+                do {
+                    let info = try await MediaService(settings: settings).upload(fileURL: ClipStorage.url(for: name),
+                                                                                  path: MediaService.path(for: sets[i]))
+                    if let j = sets.firstIndex(where: { $0.id == id }) {
+                        sets[j].video = info
+                        sets[j].clipFile = nil
+                        sets[j].synced = false      // the log entry now needs its video link
+                        save()
+                    }
+                    ClipStorage.remove(name)
+                    lastClipError = nil
+                } catch {
+                    lastClipError = error.localizedDescription
+                    return                         // the same problem would hit the next clip; try again later
+                }
+            }
+        } while uploadAgain
+    }
+
+    // MARK: - Dashboard log
+
+    /// Pushes every unsynced set into data/workouts.json. A set that is already there only gets its new fields merged in.
     @discardableResult
     func sync() async -> Bool {
         guard settings.hasGitHub else { return false }
-        guard !isSyncing else { return false }
-        let batch = pending
-        guard !batch.isEmpty else { return true }
+        if isSyncing { syncAgain = true; return false }
         isSyncing = true
         defer { isSyncing = false }
+        var ok = true
+        repeat {
+            syncAgain = false
+            ok = await syncOnce()
+        } while syncAgain && ok
+        return ok
+    }
+
+    private func syncOnce() async -> Bool {
+        let batch = pending
+        guard !batch.isEmpty else { return true }
+        let videoAtStart = Dictionary(uniqueKeysWithValues: batch.map { ($0.id, $0.video?.path ?? "") })
         do {
             let gh = GitHubService(settings: settings)
             var remote = try await gh.fetch()
             var list = remote.json["workouts"] as? [[String: Any]] ?? []
-            let existing = Set(list.map { "\($0["timestamp"] ?? "")|\($0["exercise"] ?? "")" })
-            for s in batch where !existing.contains("\(s.timestamp)|\(s.exercise)") {
-                list.append(s.remoteJSON)
+            var added: [WorkoutSet] = [], updated: [WorkoutSet] = []
+            for s in batch {
+                let key = "\(s.timestamp)|\(s.exercise)"
+                if let i = list.firstIndex(where: { "\($0["timestamp"] ?? "")|\($0["exercise"] ?? "")" == key }) {
+                    var e = list[i]
+                    var changed = false
+                    if let v = s.video, ((e["video"] as? [String: Any])?["path"] as? String) != v.path {
+                        e["video"] = v.json
+                        changed = true
+                    }
+                    if (e["cues"] as? [Any] ?? []).isEmpty, !s.cues.isEmpty { e["cues"] = s.cues; changed = true }
+                    if (e["improvements"] as? [Any] ?? []).isEmpty, !s.improvements.isEmpty { e["improvements"] = s.improvements; changed = true }
+                    if changed { list[i] = e; updated.append(s) }
+                } else {
+                    list.append(s.remoteJSON)
+                    added.append(s)
+                }
             }
-            remote.json["workouts"] = list
-            let message: String
-            if batch.count == 1, let s = batch.first {
-                message = "Log set: \(s.exercise) — \(s.amountLabel)"
-            } else {
-                let names = Array(Set(batch.map(\.exercise))).sorted().joined(separator: ", ")
-                message = "Log \(batch.count) sets: \(names)"
+            if !added.isEmpty || !updated.isEmpty {
+                remote.json["workouts"] = list
+                try await gh.put(remote, message: Self.commitMessage(added: added, updated: updated))
             }
-            try await gh.put(remote, message: message)
-            let ids = Set(batch.map(\.id))
-            for i in sets.indices where ids.contains(sets[i].id) { sets[i].synced = true }
+            // A video attached while we were talking to GitHub still needs its own push.
+            for i in sets.indices {
+                if let was = videoAtStart[sets[i].id], was == (sets[i].video?.path ?? "") { sets[i].synced = true }
+            }
             save()
             lastSyncDate = Date()
             lastSyncError = nil
@@ -73,6 +177,21 @@ final class WorkoutLogStore: ObservableObject {
             return false
         }
     }
+
+    static func commitMessage(added: [WorkoutSet], updated: [WorkoutSet]) -> String {
+        if updated.isEmpty {
+            if added.count == 1, let s = added.first { return "Log set: \(s.exercise) — \(s.amountLabel)" }
+            let names = Array(Set(added.map(\.exercise))).sorted().joined(separator: ", ")
+            return "Log \(added.count) sets: \(names)"
+        }
+        if added.isEmpty {
+            if updated.count == 1, let s = updated.first { return "Add video: \(s.exercise) set \(s.setNumber ?? 1)" }
+            return "Add video to \(updated.count) sets"
+        }
+        return "Log \(added.count) sets, update \(updated.count)"
+    }
+
+    // MARK: - Storage
 
     private func load() {
         guard let data = try? Data(contentsOf: fileURL),

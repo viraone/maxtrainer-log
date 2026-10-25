@@ -3,6 +3,10 @@ import Security
 import Combine
 
 enum Keychain {
+    /// Tests set MAXTRAINER_TEST_MEMORY_KEYCHAIN=1 so secrets never touch the real keychain.
+    private static let inMemory = ProcessInfo.processInfo.environment["MAXTRAINER_TEST_MEMORY_KEYCHAIN"] == "1"
+    private static var memory: [String: String] = [:]
+
     private static func query(_ key: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
          kSecAttrService as String: "com.viraone.maxtrainer",
@@ -10,6 +14,7 @@ enum Keychain {
     }
 
     static func get(_ key: String) -> String? {
+        if inMemory { return memory[key] }
         var q = query(key)
         q[kSecReturnData as String] = true
         q[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -21,6 +26,7 @@ enum Keychain {
 
     static func set(_ value: String, for key: String) {
         if value.isEmpty { delete(key); return }
+        if inMemory { memory[key] = value; return }
         let data = Data(value.utf8)
         let q = query(key)
         let status = SecItemUpdate(q as CFDictionary, [kSecValueData as String: data] as CFDictionary)
@@ -33,6 +39,7 @@ enum Keychain {
     }
 
     static func delete(_ key: String) {
+        if inMemory { memory[key] = nil; return }
         SecItemDelete(query(key) as CFDictionary)
     }
 }
@@ -55,6 +62,10 @@ final class AppSettings: ObservableObject {
     @Published var recordSets: Bool { didSet { defaults.set(recordSets, forKey: "recordSets") } }
     /// AVSpeechSynthesisVoice identifier, or "" for the best installed voice.
     @Published var voiceIdentifier: String { didSet { defaults.set(voiceIdentifier, forKey: "voiceIdentifier") } }
+    /// Name of the private repo (under the same owner) that holds the set videos.
+    @Published var mediaRepoName: String { didSet { defaults.set(mediaRepoName, forKey: "mediaRepoName") } }
+    /// Upload each recorded set to the private media repo so the dashboard can play it.
+    @Published var uploadClips: Bool { didSet { defaults.set(uploadClips, forKey: "uploadClips") } }
 
     static let defaultModel = "claude-opus-5-5"
 
@@ -71,10 +82,15 @@ final class AppSettings: ObservableObject {
         formFeedback = defaults.object(forKey: "formFeedback") as? Bool ?? true
         recordSets = defaults.object(forKey: "recordSets") as? Bool ?? true
         voiceIdentifier = defaults.string(forKey: "voiceIdentifier") ?? ""
+        mediaRepoName = defaults.string(forKey: "mediaRepoName") ?? "maxtrainer-media"
+        uploadClips = defaults.object(forKey: "uploadClips") as? Bool ?? true
     }
 
     var hasClaude: Bool { !anthropicKey.trimmingCharacters(in: .whitespaces).isEmpty }
     var hasGitHub: Bool { !githubToken.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    /// Only tests change this (a hidden defaults key) to talk to a local fake GitHub.
+    var githubAPIBase: String { defaults.string(forKey: "githubAPIBase") ?? "https://api.github.com" }
 
     var dashboardURL: URL {
         URL(string: "https://\(repoOwner).github.io/\(repoName)/")!

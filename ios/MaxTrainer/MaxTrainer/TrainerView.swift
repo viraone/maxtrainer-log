@@ -44,7 +44,7 @@ struct TrainerView: View {
             if let g { guide = g; engine.showGuide = nil }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await engine.store.sync() } }
+            if phase == .active { Task { await engine.store.flush() } }
         }
     }
 
@@ -255,6 +255,14 @@ struct TrainerView: View {
         let pending = store.pending.count
         if store.isSyncing {
             Label("Logging to your dashboard…", systemImage: "arrow.triangle.2.circlepath").font(.caption).foregroundStyle(.secondary)
+        } else if store.isUploading {
+            Label("Uploading your set video…", systemImage: "arrow.up.circle").font(.caption).foregroundStyle(.secondary)
+        } else if store.lastClipError != nil, !store.pendingClips.isEmpty {
+            Button { Task { await store.flush() } } label: {
+                Label("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting · tap to retry", systemImage: "film")
+                    .font(.caption).foregroundStyle(Color.accent)
+            }
+            .buttonStyle(.plain)
         } else if pending > 0 {
             Button { Task { await store.sync() } } label: {
                 Label("\(pending) \(pending == 1 ? "set" : "sets") waiting to sync · tap to retry", systemImage: "icloud.slash")

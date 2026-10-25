@@ -23,6 +23,16 @@ struct LogView: View {
                         }
                     }
                 }
+                if let err = store.lastClipError {
+                    Section {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(store.pendingClips.count) set \(store.pendingClips.count == 1 ? "video" : "videos") waiting to upload").font(.subheadline.weight(.semibold))
+                            Text(err).font(.caption).foregroundStyle(.red)
+                            Button("Retry upload") { Task { await store.flush() } }
+                                .buttonStyle(.borderedProminent).disabled(store.isUploading)
+                        }
+                    }
+                }
                 ForEach(grouped, id: \.day) { group in
                     Section(group.day) {
                         ForEach(group.sets) { set in
@@ -33,6 +43,11 @@ struct LogView: View {
                                     Text(set.amountLabel).foregroundStyle(Color.accent).fontWeight(.semibold)
                                     Image(systemName: set.synced ? "checkmark.icloud.fill" : "icloud.slash")
                                         .foregroundStyle(set.synced ? .green : .secondary).font(.caption)
+                                    if set.video != nil {
+                                        Image(systemName: "film.fill").foregroundStyle(.green).font(.caption)
+                                    } else if set.clipFile != nil {
+                                        Image(systemName: "arrow.up.circle").foregroundStyle(.secondary).font(.caption)
+                                    }
                                 }
                                 if let s = set.summary, !s.isEmpty, !s.hasPrefix(set.exercise + ":") {
                                     Text(s).font(.caption).foregroundStyle(.secondary)

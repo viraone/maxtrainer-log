@@ -1,7 +1,16 @@
 import Foundation
 
+/// A set's video in the private media repo.
+struct ClipInfo: Codable, Equatable {
+    var path: String      // e.g. videos/2026/10/24/20261024T195730Z-planks-set1-ab12cd.mp4
+    var bytes: Int
+    var repo: String      // "owner/name" of the private repo that holds it
+
+    var json: [String: Any] { ["path": path, "bytes": bytes, "repo": repo] }
+}
+
 /// One logged set. Mirrors an entry in data/workouts.json (the dashboard's file),
-/// plus local-only bookkeeping (`id`, `synced`).
+/// plus local-only bookkeeping (`id`, `synced`, `clipFile`).
 struct WorkoutSet: Codable, Identifiable, Equatable {
     var id: String = UUID().uuidString
     var exercise: String
@@ -13,11 +22,16 @@ struct WorkoutSet: Codable, Identifiable, Equatable {
     var cues: [String] = []
     var improvements: [String] = []
     var synced: Bool = false
+    /// The recorded clip once it is in the private media repo.
+    var video: ClipInfo?
+    /// File name (inside ClipStorage) of a recorded clip that has not been uploaded yet.
+    var clipFile: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, exercise, reps, timestamp, summary, cues, improvements, synced
+        case id, exercise, reps, timestamp, summary, cues, improvements, synced, video
         case durationSeconds = "duration_seconds"
         case setNumber = "set_number"
+        case clipFile = "clip_file"
     }
 
     /// The shape written to data/workouts.json, which the dashboard reads.
@@ -32,6 +46,7 @@ struct WorkoutSet: Codable, Identifiable, Equatable {
         if let reps { d["reps"] = reps }
         if let durationSeconds { d["duration_seconds"] = durationSeconds }
         if let setNumber { d["set_number"] = setNumber }
+        if let video { d["video"] = video.json }
         return d
     }
 

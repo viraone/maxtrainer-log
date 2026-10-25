@@ -85,7 +85,7 @@ final class TrainerEngine: ObservableObject {
 
         await say("Hey, I'm Max. What are we training today? Say it, or tap a move on the screen.")
         if ok { listener.suppress(false) }   // also covers voice being turned off
-        Task { await store.sync() }
+        Task { await store.flush() }
     }
 
     var statusText: String {
@@ -259,7 +259,7 @@ final class TrainerEngine: ObservableObject {
             switch phase {
             case .active, .countdown:
                 timerTask?.cancel()
-                camera.stopRecording(save: false, label: plan?.name ?? "")
+                camera.stopRecording(keep: false)
                 phase = .ready
                 await say("Stopped. Tell me when to start recording you again, or what you want to do.")
             case .resting:
@@ -347,7 +347,7 @@ final class TrainerEngine: ObservableObject {
         if settings.recordSets, camera.isRunning, !camera.unavailable { camera.startRecording() }
         AudioServicesPlaySystemSound(1117)   // the "begin recording" tick: instant feedback before Max speaks
         await say("Recording. Set \(setNumber). Three, two, one, go!")
-        guard phase == .countdown else { camera.stopRecording(save: false, label: p.name); return }
+        guard phase == .countdown else { camera.stopRecording(keep: false); return }
         phase = .active
         switch p.mode {
         case .timed(let total):
@@ -412,7 +412,7 @@ final class TrainerEngine: ObservableObject {
             await say("Okay, stopping at \(done) seconds.")
             await logSet(reps: nil, seconds: done)
         } else {
-            camera.stopRecording(save: false, label: plan?.name ?? "")
+            camera.stopRecording(keep: false)
             phase = .ready
             await say("Cancelled. Tell me when to start recording you.")
         }
@@ -432,13 +432,17 @@ final class TrainerEngine: ObservableObject {
 
     private func logSet(reps: Int?, seconds: Int?) async {
         guard var p = plan else { return }
-        camera.stopRecording(save: true, label: p.name)
         p.setsDone += 1
         p.setsRemaining = max(0, p.setsRemaining - 1)
         plan = p
         var set = WorkoutSet(exercise: p.name, reps: reps, durationSeconds: seconds, setNumber: p.setsDone, timestamp: WorkoutSet.isoNow())
         set.summary = "\(p.name): \(set.amountLabel)."
         store.append(set)
+        let setID = set.id
+        camera.stopRecording(keep: true) { [weak self] url in
+            guard let self, let url else { return }
+            Task { await self.clipFinished(url, for: setID) }
+        }
         sessionSets.append(set)
         phase = .ready
         if p.setsRemaining > 0 {
@@ -452,6 +456,20 @@ final class TrainerEngine: ObservableObject {
         let frame = midSetFrame
         midSetFrame = nil
         Task { await feedbackAndSync(set: set, frame: frame) }
+    }
+
+    /// A finished recording: a copy goes to Photos, and the clip itself waits for upload to the private media repo.
+    private func clipFinished(_ recording: URL, for setID: String) async {
+        let photoCopy = ClipStorage.url(for: "photos-\(UUID().uuidString).mp4")
+        if (try? FileManager.default.copyItem(at: recording, to: photoCopy)) != nil {
+            camera.saveToPhotos(photoCopy) { _ in try? FileManager.default.removeItem(at: photoCopy) }
+        }
+        guard settings.uploadClips, let name = ClipStorage.adopt(recording, as: setID) else {
+            try? FileManager.default.removeItem(at: recording)
+            return
+        }
+        store.attachLocalClip(setID: setID, fileName: name)
+        await store.flush()
     }
 
     private func feedbackAndSync(set: WorkoutSet, frame: Data?) async {
