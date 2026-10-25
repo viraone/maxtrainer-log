@@ -65,45 +65,43 @@
         "rotate": 270
       },
       "ai": {
-        "score": 5,
-        "headline": "Solid elevated plank that improves as it goes, but the hips start too high and the head is lifted.",
+        "score": 7,
+        "headline": "A steady plank with locked arms and a mostly straight body line, but your head hangs down and your hips ride a little high early in the hold.",
         "view": {
           "person_visible": true,
           "camera_angle": "side",
           "confidence": "high"
         },
         "good": [
-          "Elbows are locked and arms stay straight throughout the hold.",
-          "Hands are planted flat and feet are up on the toes for a stable base.",
-          "Hips lower and the body line straightens noticeably in the later frames.",
-          "The elevated position on the bench is a good way to build plank endurance."
+          "Arms are stacked with shoulders over hands and elbows locked straight through all frames.",
+          "Legs stay straight with no knee bend from the first frame to the last.",
+          "The line from shoulders through hips to ankles stays close to a straight line across the whole 30 seconds.",
+          "No collapse at the end: frames 6 to 8 show the same body position as frames 2 to 4, so you held your shape."
         ],
         "fix": [
           {
-            "area": "hips",
-            "issue": "Hips are piked upward, especially in frames 1 to 4, breaking the straight line from shoulders to ankles.",
-            "cue": "Squeeze your glutes and lower your hips until your body is a straight line."
-          },
-          {
             "area": "neck",
-            "issue": "The head is lifted and the neck is extended, particularly visible in frames 2 to 6.",
-            "cue": "Tuck your chin slightly and look at the floor to keep your neck neutral."
+            "issue": "Your head hangs down with the chin tucked toward the chest in all frames, most obvious in frames 1 to 3, so the neck is bent instead of long.",
+            "cue": "Look at the floor just past your hands and make a long neck, like a double chin and not a nod."
           },
           {
-            "area": "core",
-            "issue": "The high hips and slightly rounded back suggest the core is not fully braced.",
-            "cue": "Brace your abs like you're about to be poked in the stomach."
+            "area": "hips",
+            "issue": "Your hips sit slightly high in frames 1 to 5, so the body makes a shallow pike rather than one straight line.",
+            "cue": "Squeeze your glutes and lower your hips until ears, shoulders, hips and heels line up."
           }
         ],
-        "over_time": "The form improves during the set; the hips start high with slightly bent knees in the first few frames, then gradually lower and straighten out by the final frames.",
-        "next_set": "Focus on starting with your hips in line with your shoulders and ankles from the very first second.",
+        "over_time": "The setup in frame 1 is already a real plank, not a transition. The head stays dropped the whole way through. The hips sit a touch high in frames 1 to 5 and settle closer to a straight line by frames 6 to 8, with no sag or collapse at the end.",
+        "next_set": "Set your head and hip height before the timer starts, then keep that same shape to the last second.",
         "cannot_judge": [
-          "Whether the shoulders are actively pushed down and back due to the loose shirt.",
-          "Exact wrist angle due to the camera angle.",
-          "Whether the elevated surface is completely stable."
+          "Core bracing, rib position and breathing, because the loose sweater hides your midsection.",
+          "Whether your lower back arches or stays flat, since the dark trousers and sweater hide the curve.",
+          "Shoulder blade position and whether the shoulders creep up toward your ears.",
+          "Whether your toes are tucked and gripping or your feet are resting another way, as the feet sit near the right edge.",
+          "Exact hold time and tempo, since still frames cannot show speed."
         ],
+        "spoken": "Solid plank, and you held it to the end. Two things to clean up. First, your head hangs down the whole time, chin tucked to your chest. Lift your gaze to the floor just past your hands and keep your neck long, like you're making a double chin, not a nod. Second, your hips sit a bit high early on, so you're in a slight pike. Squeeze your glutes and lower your hips until your body's one straight line from ears to heels. Next set, check your head and hips right after setup, then hold.",
         "model": "deepseek-flash",
-        "analyzed_at": "2026-10-25T02:44:17.729Z",
+        "analyzed_at": "2026-10-25T03:41:45.740Z",
         "frames": 8
       }
     }
