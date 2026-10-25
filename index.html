@@ -215,6 +215,55 @@
     .container { padding-top: 22px; }
     .stat .num { font-size: 28px; }
   }
+
+  /* ---------- set video + AI trainer ---------- */
+  .vrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+  .vbtn { background: rgba(255,177,61,.12); border: 1px solid rgba(255,177,61,.4); color: var(--accent); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .vbtn:hover { background: rgba(255,177,61,.2); transform: translateY(-1px); }
+  .aipill { font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--glass2); border: 1px solid var(--line); color: var(--text); }
+  .aipill b { color: var(--accent); }
+  .modal.wide { max-width: 760px; }
+  .vhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .vhead h2 { margin-bottom: 2px; }
+  .vsub { font-size: 12.5px; color: var(--muted); }
+  .vwrap { position: relative; background: #000; border-radius: 16px; overflow: hidden; display: grid; place-items: center; min-height: 170px; }
+  .vwrap video { width: 100%; max-height: 62vh; display: block; background: #000; }
+  .vstatus { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: var(--muted); font-size: 13.5px; background: rgba(0,0,0,.6); line-height: 1.5; }
+  .vstatus.hide { display: none; }
+  .vstatus.err { color: #ff9a9a; }
+  .vactions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0 4px; }
+  .vnote { font-size: 12.5px; color: var(--muted); }
+  .vlink { background: none; border: none; color: var(--faint); font-size: 12px; cursor: pointer; text-decoration: underline; font-family: inherit; padding: 0; }
+  .frames { display: flex; gap: 6px; overflow-x: auto; margin: 12px 0 2px; padding-bottom: 4px; }
+  .frames figure { flex: 0 0 auto; text-align: center; }
+  .frames img { height: 72px; border-radius: 8px; display: block; border: 1px solid var(--line); }
+  .frames figcaption { font-size: 10.5px; color: var(--faint); margin-top: 3px; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.25); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .fb { margin-top: 16px; padding: 16px; border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid var(--line); }
+  .fbhead { display: flex; gap: 16px; align-items: center; margin-bottom: 4px; }
+  .ring { --p: 50; width: 76px; height: 76px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center; position: relative; background: conic-gradient(var(--accent) calc(var(--p) * 1%), rgba(255,255,255,.09) 0); }
+  .ring::before { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #12141b; }
+  .ring span { position: relative; font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1; }
+  .ring small { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .fbtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--accent); font-weight: 700; }
+  .fbline { font-family: var(--display); font-size: 18px; font-weight: 600; letter-spacing: -.2px; line-height: 1.25; margin: 2px 0; }
+  .fbmeta { font-size: 11.5px; color: var(--faint); }
+  .fb h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.3px; color: var(--muted); margin: 16px 0 8px; font-weight: 700; }
+  .fb ul { list-style: none; display: grid; gap: 6px; }
+  .fb ul li { padding-left: 22px; position: relative; font-size: 13.5px; }
+  .fb ul.good li::before { content: "✓"; position: absolute; left: 0; color: #5fd68a; font-weight: 800; }
+  .fixes { display: grid; gap: 8px; }
+  .fix { display: flex; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--glass); border: 1px solid var(--line2); }
+  .fix .area { flex: 0 0 auto; align-self: flex-start; font-size: 10.5px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: rgba(255,106,61,.16); color: #ff8f66; }
+  .fix .issue { font-size: 13.5px; }
+  .fix .cue { font-size: 12.5px; color: var(--accent); margin-top: 3px; }
+  .fb p { font-size: 13.5px; }
+  .fb p.focus { padding: 10px 12px; border-radius: 12px; background: rgba(255,177,61,.1); border: 1px solid rgba(255,177,61,.3); }
+  .fb details summary { margin-top: 14px; }
+  .disc { margin-top: 14px; font-size: 11.5px; color: var(--faint); line-height: 1.5; }
+  .savednote { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .savednote.ok { color: #5fd68a; } .savednote.bad { color: #ffb36a; }
 </style>
 </head>
 <body>
@@ -277,13 +326,49 @@
 
 <div id="savebar"><span class="msg" id="saveMsg"></span><button class="btn" id="discardBtn">Discard</button><button class="btn primary" id="saveBtn">Save to GitHub</button></div>
 
+<div class="modal-bg" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+  <div class="modal wide">
+    <div class="vhead">
+      <div><h2 id="vTitle">Set video</h2><div class="vsub" id="vSub"></div></div>
+      <button class="btn sm" id="vClose">Close</button>
+    </div>
+    <div class="vwrap">
+      <video id="vPlayer" controls playsinline preload="auto"></video>
+      <div class="vstatus" id="vStatus"></div>
+    </div>
+    <div class="vactions">
+      <button class="btn primary" id="vAnalyze" disabled>✨ Analyze my form</button>
+      <span class="vnote" id="vNote"></span>
+    </div>
+    <div class="frames" id="vFrames"></div>
+    <div id="vFeedback"></div>
+    <div class="savednote" id="vSaved"></div>
+    <div style="margin-top:12px"><button class="vlink" id="vKeyLink">Change DeepSeek key</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="aiKeyModal">
+  <div class="modal">
+    <h2>Connect your AI trainer</h2>
+    <p class="help">The form review is done by DeepSeek. Paste your DeepSeek API key once. It is stored only in this browser and sent only to DeepSeek.</p>
+    <p class="help">When you press Analyze, a handful of still frames from that one clip are sent to DeepSeek so it can see your form. Nothing else leaves this page.</p>
+    <ol>
+      <li>Create or copy a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>.</li>
+      <li>Paste it below.</li>
+    </ol>
+    <label for="aiKeyInput">DeepSeek API key</label>
+    <input id="aiKeyInput" type="password" autocomplete="off" placeholder="sk-…" />
+    <div class="actions"><div><button class="btn danger" id="aiKeyRemove">Remove saved key</button></div><div><button class="btn" id="aiKeyCancel">Cancel</button><button class="btn primary" id="aiKeySave">Save key</button></div></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="tokenModal">
   <div class="modal">
-    <h2>Connect GitHub to edit</h2>
-    <p class="help">Edits are saved straight into the log file in your GitHub repo, so the page needs permission once. You only do this one time per browser.</p>
+    <h2>Connect GitHub</h2>
+    <p class="help" id="tokenWhy"></p>
     <ol>
-      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> on GitHub.</li>
-      <li>Repository access: <b>Only select repositories → viraone/maxtrainer-log</b>.</li>
+      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> on GitHub, or edit the one you already have.</li>
+      <li>Repository access: <b>Only select repositories</b>, and pick both <b>viraone/maxtrainer-log</b> and <b>viraone/maxtrainer-media</b> (the private repo that holds set videos).</li>
       <li>Permissions: <b>Contents → Read and write</b>. Generate it.</li>
       <li>Paste it below. It is stored only in this browser.</li>
     </ol>
@@ -623,11 +708,13 @@ function renderHistory(view) {
             ${s.cues && s.cues.length ? `<div class="k">Cues</div><ul>${s.cues.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
             ${s.improvements && s.improvements.length ? `<div class="k">Next time</div><ul>${s.improvements.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
           </details>` : "";
+        const vrow = s.video && s.video.path
+          ? `<div class="vrow"><button class="vbtn" data-play="${idx}">▶ ${s.ai ? "Watch + feedback" : "Watch &amp; get AI feedback"}</button>${s.ai && s.ai.score ? `<span class="aipill">AI form <b>${esc(s.ai.score)}/10</b></span>` : ""}</div>` : "";
         return `<tr${admin ? ` data-row="${idx}" title="Click to edit"` : ""}>
           <td class="n">Set ${s.set_number ?? i + 1}</td>
           <td class="t">${esc(timeShort(s.date))}</td>
           <td class="a"><span class="amt">${esc(amount(s))}</span></td>
-          <td class="note">${summary ? `<span class="sum">${esc(summary)}</span>` : (s.improvements && s.improvements[0] ? `🔧 ${esc(s.improvements[0])}` : `<span style="color:var(--faint)">—</span>`)}${notes}</td>
+          <td class="note">${summary ? `<span class="sum">${esc(summary)}</span>` : (s.improvements && s.improvements[0] ? `🔧 ${esc(s.improvements[0])}` : `<span style="color:var(--faint)">—</span>`)}${notes}${vrow}</td>
           ${admin ? `<td class="act"><button class="icon" title="Edit" data-edit="${idx}">✎</button><button class="icon del" title="Delete" data-del="${idx}">🗑</button></td>` : ""}
         </tr>`;
       }).join("");
@@ -647,6 +734,7 @@ function renderHistory(view) {
   });
   $("#days").querySelectorAll("[data-del]").forEach((b) => b.onclick = () => deleteSet(all[+b.dataset.del]));
   $("#days").querySelectorAll("[data-addday]").forEach((b) => b.onclick = () => openEditor(null, new Date(b.dataset.addday)));
+  $("#days").querySelectorAll("[data-play]").forEach((b) => b.onclick = (e) => { e.stopPropagation(); openVideo(all[+b.dataset.play]); });
 }
 
 // ---------- admin: edit, add, delete, rename, save to GitHub ----------
@@ -672,19 +760,28 @@ function showTab(name) {
 }
 document.querySelectorAll(".tab").forEach((t) => t.onclick = () => showTab(t.dataset.tab));
 (() => { let t = "log"; try { t = localStorage.getItem("maxtrainer_tab") || "log"; } catch (e) {} if (location.hash === "#progress") t = "progress"; showTab(t); })();
+let afterToken = null;
+const WHY_EDIT = "Edits are saved straight into the log file in your GitHub repo, so this page needs permission once. You only do this one time per browser.";
+const WHY_VIDEO = "Set videos are kept in a private GitHub repo, so this page needs your token to play them. It is stored only in this browser.";
+function openTokenDialog(why, next) {
+  afterToken = next || null;
+  $("#tokenWhy").textContent = why || "";
+  $("#tokenInput").value = ""; $("#tokenModal").classList.add("show"); setTimeout(() => $("#tokenInput").focus(), 50);
+}
 $("#adminBtn").onclick = () => {
   if (admin) { setAdmin(false); return; }
   if (token() || isDemo) { setAdmin(true); return; }
-  $("#tokenInput").value = ""; $("#tokenModal").classList.add("show"); setTimeout(() => $("#tokenInput").focus(), 50);
+  openTokenDialog(WHY_EDIT, () => setAdmin(true));
 };
-$("#tokenCancel").onclick = () => $("#tokenModal").classList.remove("show");
-$("#tokenBtn").onclick = () => { $("#tokenInput").value = ""; $("#tokenModal").classList.add("show"); setTimeout(() => $("#tokenInput").focus(), 50); };
+$("#tokenCancel").onclick = () => { afterToken = null; $("#tokenModal").classList.remove("show"); };
+$("#tokenBtn").onclick = () => openTokenDialog("Paste a current token to replace the saved one. Include the private video repo (viraone/maxtrainer-media).", null);
 $("#tokenSave").onclick = () => {
   const t = $("#tokenInput").value.trim();
   if (!t) return;
   localStorage.setItem(TOKEN_KEY, t);
   $("#tokenModal").classList.remove("show");
-  setAdmin(true);
+  const f = afterToken; afterToken = null;
+  if (f) f();
 };
 $("#addSetBtn").onclick = () => openEditor(null, new Date());
 
@@ -695,7 +792,7 @@ function markDirty(n = 1) {
   $("#saveBtn").disabled = isDemo;
   $("#saveBtn").textContent = isDemo ? "Demo: saving disabled" : "Save to GitHub";
 }
-$("#discardBtn").onclick = () => { if (dirty && !confirm("Throw away all unsaved changes?")) return; dirty = 0; $("#savebar").classList.remove("show"); load(); };
+$("#discardBtn").onclick = () => { if (dirty && !confirm("Throw away all unsaved changes?")) return; dirty = 0; orphanClips = []; $("#savebar").classList.remove("show"); load(); };
 
 // Editor
 const lines = (t) => t.split("\n").map((x) => x.trim()).filter(Boolean);
@@ -759,6 +856,7 @@ function deleteSet(raw) {
   if (!confirm(`Delete this set?\n${label}`)) return;
   const i = all.indexOf(raw);
   if (i >= 0) all.splice(i, 1);
+  queueClipDelete(raw);
   markDirty();
   render();
 }
@@ -787,6 +885,7 @@ $("#renameSave").onclick = () => {
 $("#renameDeleteAll").onclick = () => {
   const n = all.filter((w) => w.exercise === renaming).length;
   if (!confirm(`Delete all ${n} sets of “${renaming}”? This cannot be undone after saving.`)) return;
+  all.filter((w) => w.exercise === renaming).forEach(queueClipDelete);
   all = all.filter((w) => w.exercise !== renaming);
   if (exerciseFilter === renaming) exerciseFilter = "All";
   $("#renameModal").classList.remove("show");
@@ -813,6 +912,7 @@ $("#saveBtn").onclick = async () => {
       body: JSON.stringify({ message, content, sha, branch: REPO.branch }) });
     if (!put.ok) { const e = await put.json().catch(() => ({})); throw new Error(e.message || `GitHub HTTP ${put.status}`); }
     dirty = 0; $("#savebar").classList.remove("show");
+    deleteOrphanClips();            // clips of sets that were deleted; failures are ignored
     btn.textContent = "Saved ✓";
     setTimeout(() => { btn.textContent = "Save to GitHub"; btn.disabled = false; }, 1500);
     // GitHub Pages redeploys in a minute or so; the in-memory data is already current.
@@ -822,6 +922,348 @@ $("#saveBtn").onclick = async () => {
   }
 };
 if (token() && new URLSearchParams(location.search).has("admin")) setAdmin(true);
+
+// ---------- set videos and the AI trainer ----------
+// ==== AI BEGIN (pure functions: also run by a Node test against the real DeepSeek API) ====
+const AI_MODEL = "deepseek-flash";
+const AI_URL = "https://api.deepseek.com/anthropic/v1/messages";
+const AI_SYSTEM = `You are Max, an experienced personal trainer. You are reviewing a short phone video of one set of an exercise. You get several still frames taken at evenly spaced moments across the clip, in time order, each labelled with its time.
+
+Judge technique the way a coach standing next to the person would: body line and posture, head and neck position, shoulders, elbows and wrists, spine and core bracing, hips, knees, range of motion, and how form changes as the set goes on.
+
+Rules:
+- Describe only what you can actually see in these frames. Do not invent details. If the person is cut off, the angle hides something, or a frame is dark or blurry, say what you cannot judge.
+- Check every claim against specific frames before you make it, and say which frames show it (for example "frames 5 to 8"). Compare the first and last frames before you describe how form changed.
+- Judge the body line against a straight line through the joints (for example shoulder, hip, ankle), not against the horizon. Do not call something a problem unless the frames clearly show it.
+- Be specific and practical. Name the body part, say what is right or wrong, and give one short cue that fixes it.
+- Be encouraging but honest. Do not flatter.
+- Still frames cannot show speed, so only comment on tempo if the frames clearly show it.
+- No medical advice. If something looks risky, say to make it easier or stop and ask a professional.
+
+Reply with one JSON object and nothing else, with exactly these keys:
+{
+  "score": a whole number from 1 to 10 for the form you can see (10 is textbook),
+  "headline": "one sentence verdict in plain words",
+  "view": {"person_visible": true, "camera_angle": "side|front|back|diagonal|unclear", "confidence": "low|medium|high"},
+  "good": ["what looked right, specific, up to 4 items"],
+  "fix": [{"area": "neck|head|shoulders|elbows|wrists|back|core|hips|knees|feet|range|tempo|other", "issue": "what you see", "cue": "short instruction to correct it"}],
+  "over_time": "how form changed from the first frames to the last, or an empty string",
+  "next_set": "the one thing to focus on in the next set",
+  "cannot_judge": ["things these frames do not let you assess"]
+}`;
+
+function mmss(sec) { const s = Math.round(sec); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+
+function buildAnalysisRequest(set, frames, clipSeconds) {
+  const amt = set.duration_seconds != null ? `${set.duration_seconds} seconds` : `${set.reps ?? "an unknown number of"} reps`;
+  const clipNote = clipSeconds ? `The clip is ${Math.round(clipSeconds)} seconds long. Recording starts at the countdown, so the first few seconds may show the person getting into position.\n` : "";
+  const when = set.timestamp ? new Date(set.timestamp).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+  const content = [{ type: "text", text: `Exercise: ${set.exercise}\nSet ${set.set_number ?? 1}: ${amt}\n${when ? `Recorded: ${when}\n` : ""}${clipNote}The phone sits on a tripod, so the person may be partly cropped or at an angle.\nHere are ${frames.length} frames in time order.` }];
+  frames.forEach((f, i) => {
+    content.push({ type: "text", text: `Frame ${i + 1} of ${frames.length}, at ${mmss(f.t)}:` });
+    content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: f.data.replace(/^data:image\/jpeg;base64,/, "") } });
+  });
+  content.push({ type: "text", text: "Review the form now. Reply with the JSON object only." });
+  // The model's reasoning is left on: with it off it misread a clean plank as a pike. It needs a roomy token budget to finish.
+  return { model: AI_MODEL, max_tokens: 8000, system: AI_SYSTEM, messages: [{ role: "user", content }] };
+}
+
+function parseJSONLoose(text) {
+  let t = String(text || "").trim();
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a < 0 || b <= a) throw new Error("The AI answered without any structured feedback.");
+  return JSON.parse(t.slice(a, b + 1));
+}
+
+const strList = (v, max = 6) => (Array.isArray(v) ? v : []).map((x) => String(x ?? "").trim()).filter(Boolean).slice(0, max);
+
+function normalizeAI(o) {
+  const n = Math.round(Number(o.score));
+  const view = o.view && typeof o.view === "object" ? o.view : {};
+  return {
+    score: Number.isFinite(n) ? Math.min(10, Math.max(1, n)) : null,
+    headline: String(o.headline || "").trim().slice(0, 240),
+    view: {
+      person_visible: view.person_visible !== false,
+      camera_angle: String(view.camera_angle || "unclear").slice(0, 24),
+      confidence: ["low", "medium", "high"].includes(view.confidence) ? view.confidence : "medium",
+    },
+    good: strList(o.good, 5),
+    fix: (Array.isArray(o.fix) ? o.fix : []).map((f) => ({
+      area: String((f && f.area) || "other").toLowerCase().slice(0, 16),
+      issue: String((f && f.issue) || "").trim().slice(0, 260),
+      cue: String((f && f.cue) || "").trim().slice(0, 200),
+    })).filter((f) => f.issue).slice(0, 6),
+    over_time: String(o.over_time || "").trim().slice(0, 400),
+    next_set: String(o.next_set || "").trim().slice(0, 240),
+    cannot_judge: strList(o.cannot_judge, 5),
+  };
+}
+
+const aiText = (data) => (data && Array.isArray(data.content) ? data.content : []).filter((b) => b && b.type === "text").map((b) => b.text).join("\n");
+
+async function callDeepSeek(key, body, doFetch = fetch) {
+  let res;
+  try {
+    res = await doFetch(AI_URL, { method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" }, body: JSON.stringify(body) });
+  } catch (e) {
+    throw new Error("Could not reach DeepSeek from this browser. Check your connection and try again.");
+  }
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    const msg = (e.error && (e.error.message || e.error)) || "";
+    if (res.status === 401) throw new Error("DeepSeek rejected the key (401). Paste it again.");
+    if (res.status === 402) throw new Error("DeepSeek says the balance is empty (402). Top up at platform.deepseek.com.");
+    if (res.status === 429) throw new Error("DeepSeek is rate limiting you (429). Wait a minute and try again.");
+    const err = new Error(`DeepSeek HTTP ${res.status}${msg ? ": " + msg : ""}`);
+    err.status = res.status; err.detail = String(msg);
+    throw err;
+  }
+  return res.json();
+}
+
+async function analyseFrames(key, set, frames, doFetch = fetch, clipSeconds) {
+  const body = buildAnalysisRequest(set, frames, clipSeconds);
+  let data = await callDeepSeek(key, body, doFetch);
+  let text = aiText(data);
+  if (!text.trim() && data.stop_reason === "max_tokens") {   // the reasoning used the whole budget: ask again with much more room
+    data = await callDeepSeek(key, { ...body, max_tokens: 24000 }, doFetch);
+    text = aiText(data);
+  }
+  let parsed;
+  try { parsed = parseJSONLoose(text); } catch (e) { const err = new Error("The AI's answer could not be read. Try again."); err.raw = text; throw err; }
+  return normalizeAI(parsed);
+}
+// ==== AI END ====
+
+const AI_KEY = "maxtrainer_deepseek_key";
+const aiKey = () => { try { return localStorage.getItem(AI_KEY) || ""; } catch (e) { return ""; } };
+const ghHeaders = (accept = "application/vnd.github+json") => ({ Authorization: `Bearer ${token()}`, Accept: accept, "X-GitHub-Api-Version": "2022-11-28" });
+const REPO_RE = /^[\w.-]+\/[\w.-]+$/;
+function clipApiURL(v) {
+  const repo = REPO_RE.test(v.repo || "") ? v.repo : "viraone/maxtrainer-media";
+  return `https://api.github.com/repos/${repo}/contents/${String(v.path).split("/").map(encodeURIComponent).join("/")}`;
+}
+
+const blobCache = new Map();
+let viewing = null, viewingURL = null, viewingBlob = null, analysing = false, afterKey = null;
+let orphanClips = [];
+
+function setVStatus(html, isErr) {
+  const el = $("#vStatus");
+  el.innerHTML = html || "";
+  el.classList.toggle("hide", !html);
+  el.classList.toggle("err", !!isErr);
+}
+function setVNote(html) { $("#vNote").innerHTML = html || ""; }
+function defaultNote() { return viewing && viewingBlob ? "Sends 8 still frames from this clip to DeepSeek. Takes 20 to 30 seconds." : ""; }
+function syncAnalyzeLabel() {
+  $("#vAnalyze").textContent = viewing && viewing.ai ? "↻ Analyze again" : "✨ Analyze my form";
+}
+
+async function loadClip(raw) {
+  const v = raw.video;
+  if (blobCache.has(v.path)) return blobCache.get(v.path);
+  const res = await fetch(clipApiURL(v), { headers: ghHeaders("application/vnd.github.raw") }).catch(() => { throw new Error("Could not reach GitHub. Check your connection."); });
+  if (res.status === 401) throw new Error("GitHub rejected the saved token. Open “Edit log”, then “GitHub token”, and paste a current one.");
+  if (res.status === 403 || res.status === 404) throw new Error(`Can't open this clip. Your token needs access to ${v.repo || "the private video repository"} with Contents: read. In GitHub, edit the token and add that repository.`);
+  if (!res.ok) throw new Error(`GitHub HTTP ${res.status}`);
+  const total = Number(res.headers.get("content-length")) || 0;
+  let blob;
+  if (res.body && res.body.getReader) {
+    const reader = res.body.getReader(); const chunks = []; let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); got += value.length;
+      setVStatus(`<span><span class="spin"></span>Loading video… ${(got / 1e6).toFixed(1)}${total ? " of " + (total / 1e6).toFixed(1) : ""} MB</span>`);
+    }
+    blob = new Blob(chunks, { type: "video/mp4" });
+  } else {
+    blob = new Blob([await res.arrayBuffer()], { type: "video/mp4" });
+  }
+  blobCache.set(v.path, blob);
+  if (blobCache.size > 6) blobCache.delete(blobCache.keys().next().value);
+  return blob;
+}
+
+function openVideo(raw) {
+  if (!raw || !raw.video) return;
+  if (!token()) { openTokenDialog(WHY_VIDEO, () => openVideo(raw)); return; }
+  viewing = raw; viewingBlob = null;
+  const d = new Date(raw.timestamp);
+  $("#vTitle").textContent = `${raw.exercise} · Set ${raw.set_number ?? 1}`;
+  $("#vSub").textContent = `${amount(raw)} · ${dateShort(d)} · ${timeShort(d)}`;
+  $("#vFrames").innerHTML = "";
+  $("#vSaved").textContent = ""; $("#vSaved").className = "savednote";
+  $("#vFeedback").innerHTML = raw.ai ? renderFeedback(raw.ai) : "";
+  if (viewingURL) { URL.revokeObjectURL(viewingURL); viewingURL = null; }
+  const player = $("#vPlayer"); player.pause(); player.removeAttribute("src"); player.load();
+  $("#vAnalyze").disabled = true; syncAnalyzeLabel(); setVNote("");
+  setVStatus(`<span><span class="spin"></span>Loading video…</span>`);
+  $("#videoModal").classList.add("show");
+  loadClip(raw).then((blob) => {
+    if (viewing !== raw) return;
+    viewingBlob = blob; viewingURL = URL.createObjectURL(blob);
+    player.src = viewingURL;
+    setVStatus(""); $("#vAnalyze").disabled = false; setVNote(defaultNote());
+  }).catch((err) => { if (viewing === raw) setVStatus(esc(err.message), true); });
+}
+
+function closeVideo() {
+  $("#vPlayer").pause();
+  $("#videoModal").classList.remove("show");
+  if (viewingURL) { URL.revokeObjectURL(viewingURL); viewingURL = null; }
+  viewing = null; viewingBlob = null;
+}
+$("#vClose").onclick = closeVideo;
+$("#videoModal").onclick = (e) => { if (e.target === $("#videoModal")) closeVideo(); };
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  for (const id of ["#aiKeyModal", "#tokenModal"]) if ($(id).classList.contains("show")) { $(id).classList.remove("show"); return; }
+  if ($("#videoModal").classList.contains("show")) closeVideo();
+});
+
+// AI key dialog
+function openAIKeyDialog(next) {
+  afterKey = next || null;
+  $("#aiKeyInput").value = ""; $("#aiKeyRemove").style.display = aiKey() ? "" : "none";
+  $("#aiKeyModal").classList.add("show"); setTimeout(() => $("#aiKeyInput").focus(), 50);
+}
+$("#aiKeyCancel").onclick = () => { afterKey = null; $("#aiKeyModal").classList.remove("show"); };
+$("#aiKeyRemove").onclick = () => { try { localStorage.removeItem(AI_KEY); } catch (e) {} afterKey = null; $("#aiKeyModal").classList.remove("show"); };
+$("#aiKeySave").onclick = () => {
+  const k = $("#aiKeyInput").value.trim();
+  if (!k) return;
+  try { localStorage.setItem(AI_KEY, k); } catch (e) {}
+  $("#aiKeyModal").classList.remove("show");
+  const f = afterKey; afterKey = null; if (f) f();
+};
+$("#vKeyLink").onclick = () => openAIKeyDialog(null);
+
+// Pick evenly spaced still frames from the loaded clip
+async function extractFrames(blob, maxDim = 640) {
+  const url = URL.createObjectURL(blob);
+  const v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
+  try {
+    await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = () => rej(new Error("This browser could not read the clip.")); });
+    const dur = v.duration;
+    if (!isFinite(dur) || dur <= 0) throw new Error("The clip has no readable length.");
+    const n = dur < 8 ? 6 : dur > 45 ? 10 : 8;
+    const scale = Math.min(1, maxDim / Math.max(v.videoWidth, v.videoHeight));
+    const w = Math.max(2, Math.round(v.videoWidth * scale)), h = Math.max(2, Math.round(v.videoHeight * scale));
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const ctx = c.getContext("2d");
+    const frames = [];
+    for (let i = 0; i < n; i++) {
+      const t = Math.max(0, Math.min(dur - 0.05, ((i + 0.5) * dur) / n));
+      await new Promise((res) => { const done = () => { v.onseeked = null; res(); }; v.onseeked = done; setTimeout(done, 5000); v.currentTime = t; });
+      ctx.drawImage(v, 0, 0, w, h);
+      frames.push({ t, data: c.toDataURL("image/jpeg", 0.72) });
+    }
+    frames.duration = dur;
+    return frames;
+  } finally { URL.revokeObjectURL(url); }
+}
+
+function renderFeedback(ai) {
+  const ring = ai.score ? `<div class="ring" style="--p:${ai.score * 10}"><span>${ai.score}<small>/10</small></span></div>` : "";
+  const angle = ai.view && ai.view.camera_angle && ai.view.camera_angle !== "unclear" ? `${esc(ai.view.camera_angle)} view` : "angle unclear";
+  const when = ai.analyzed_at ? new Date(ai.analyzed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+  const meta = [angle, ai.view ? `${esc(ai.view.confidence)} confidence` : "", ai.frames ? `${ai.frames} frames` : "", esc(ai.model || ""), when].filter(Boolean).join(" · ");
+  const li = (arr) => arr.map((x) => `<li>${esc(x)}</li>`).join("");
+  return `<div class="fb">
+    <div class="fbhead">${ring}<div><div class="fbtitle">AI trainer feedback</div><div class="fbline">${esc(ai.headline || "Form review")}</div><div class="fbmeta">${meta}</div></div></div>
+    ${ai.good && ai.good.length ? `<h4>What looked good</h4><ul class="good">${li(ai.good)}</ul>` : ""}
+    ${ai.fix && ai.fix.length ? `<h4>Fix next time</h4><div class="fixes">${ai.fix.map((f) => `<div class="fix"><span class="area">${esc(f.area)}</span><div><div class="issue">${esc(f.issue)}</div>${f.cue ? `<div class="cue">Cue: ${esc(f.cue)}</div>` : ""}</div></div>`).join("")}</div>` : ""}
+    ${ai.over_time ? `<h4>Over the set</h4><p>${esc(ai.over_time)}</p>` : ""}
+    ${ai.next_set ? `<h4>Next set</h4><p class="focus">${esc(ai.next_set)}</p>` : ""}
+    ${ai.cannot_judge && ai.cannot_judge.length ? `<details><summary>What the AI could not judge</summary><ul style="margin-top:8px">${li(ai.cannot_judge)}</ul></details>` : ""}
+    <div class="disc">AI feedback from a few still frames. It can miss details or misjudge angles, and it is not medical advice.</div>
+  </div>`;
+}
+
+async function analyseCurrent() {
+  if (!viewing || !viewingBlob || analysing) return;
+  if (!aiKey()) { openAIKeyDialog(analyseCurrent); return; }
+  const raw = viewing, btn = $("#vAnalyze");
+  analysing = true; btn.disabled = true;
+  $("#vSaved").textContent = ""; $("#vSaved").className = "savednote";
+  try {
+    setVNote(`<span class="spin"></span>Picking frames from the clip…`);
+    const frames = await extractFrames(viewingBlob);
+    if (viewing === raw) $("#vFrames").innerHTML = frames.map((f) => `<figure><img src="${f.data}" alt="Frame at ${mmss(f.t)}"><figcaption>${mmss(f.t)}</figcaption></figure>`).join("");
+    setVNote(`<span class="spin"></span>Your AI trainer is reviewing ${frames.length} frames. This takes 20 to 30 seconds…`);
+    const ai = await analyseFrames(aiKey(), raw, frames, fetch, frames.duration);
+    ai.model = AI_MODEL; ai.analyzed_at = new Date().toISOString(); ai.frames = frames.length;
+    raw.ai = ai;
+    if (viewing === raw) $("#vFeedback").innerHTML = renderFeedback(ai);
+    render();
+    const saved = await saveAI(raw);
+    if (viewing === raw) {
+      $("#vSaved").textContent = saved.ok ? "Saved to your log. You can reopen this feedback any time." : `Shown here but not saved: ${saved.why}`;
+      $("#vSaved").className = "savednote " + (saved.ok ? "ok" : "bad");
+    }
+  } catch (err) {
+    if (viewing === raw) { $("#vSaved").textContent = err.message; $("#vSaved").className = "savednote bad"; }
+    if (err.raw && viewing === raw) {
+      $("#vFeedback").querySelectorAll(".rawreply").forEach((n) => n.remove());
+      $("#vFeedback").insertAdjacentHTML("beforeend", `<details class="rawreply" style="margin-top:12px"><summary>What the AI actually said</summary><p style="white-space:pre-wrap;margin-top:8px;font-size:13px;color:var(--muted)">${esc(err.raw)}</p></details>`);
+    }
+  } finally {
+    analysing = false; btn.disabled = false; syncAnalyzeLabel(); setVNote(defaultNote());
+  }
+}
+$("#vAnalyze").onclick = analyseCurrent;
+
+// Save the AI feedback into this set's entry in data/workouts.json (other fields are left alone).
+async function saveAI(raw) {
+  if (isDemo) return { ok: false, why: "demo mode does not save." };
+  const url = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${REPO.path}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const cur = await fetch(`${url}?ref=${REPO.branch}&t=${Date.now()}`, { headers: ghHeaders() });
+      if (cur.status === 401) return { ok: false, why: "GitHub rejected the saved token." };
+      if (!cur.ok) return { ok: false, why: `GitHub HTTP ${cur.status} while reading the log.` };
+      const meta = await cur.json();
+      let text;
+      if (meta.content) text = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ""))));
+      else text = await (await fetch(`${url}?ref=${REPO.branch}`, { headers: ghHeaders("application/vnd.github.raw") })).text();
+      const data = JSON.parse(text);
+      const list = data.workouts || [];
+      let i = list.findIndex((w) => w.timestamp === raw.timestamp && w.exercise === raw.exercise);
+      if (i < 0) { const same = list.filter((w) => w.timestamp === raw.timestamp); if (same.length === 1) i = list.indexOf(same[0]); }
+      if (i < 0) return { ok: false, why: "this set is not in the saved log yet (save your edits first)." };
+      list[i].ai = raw.ai;
+      const body = JSON.stringify({ ...data, workouts: list }, null, 2) + "\n";
+      const put = await fetch(url, { method: "PUT", headers: { ...ghHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `AI form feedback: ${raw.exercise} set ${raw.set_number ?? 1}`, content: btoa(unescape(encodeURIComponent(body))), sha: meta.sha, branch: REPO.branch }) });
+      if (put.ok) return { ok: true };
+      if (put.status === 409 || put.status === 422) continue;           // the log changed under us: read it again
+      if (put.status === 403 || put.status === 404) return { ok: false, why: "your token cannot write to the log." };
+      return { ok: false, why: `GitHub HTTP ${put.status}.` };
+    } catch (e) { return { ok: false, why: "could not reach GitHub." }; }
+  }
+  return { ok: false, why: "the log kept changing; try again." };
+}
+
+// Deleting a set in edit mode also removes its video from the private repo, once the edit is saved.
+function queueClipDelete(raw) { if (raw && raw.video && raw.video.path) orphanClips.push(raw.video); }
+async function deleteOrphanClips() {
+  const todo = orphanClips; orphanClips = [];
+  for (const v of todo) {
+    try {
+      const url = clipApiURL(v);
+      const r = await fetch(url, { headers: ghHeaders() });
+      if (!r.ok) continue;
+      const { sha } = await r.json();
+      await fetch(url, { method: "DELETE", headers: { ...ghHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `Remove clip ${String(v.path).split("/").pop()}`, sha }) });
+    } catch (e) { /* the clip stays in the private repo; harmless */ }
+  }
+}
 
 // ---------- demo data (?demo) for previewing the layout ----------
 function demoData() {
